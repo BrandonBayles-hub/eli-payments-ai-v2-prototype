@@ -1,7 +1,7 @@
 import { Suspense, lazy, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
-import { PrototypeProvider } from '@sandbox-components/prototype'
+import { PrototypeProvider, PrototypeHeader } from '@sandbox-components/prototype'
 import type { PrototypeEntry } from '@/lib/prototype-discovery'
 import '@/styles/sandbox-bridge.css'
 
@@ -34,17 +34,11 @@ export default function PrototypeView({ prototypes }: PrototypeViewProps) {
 
   return (
     <div className="min-h-screen w-full flex flex-col">
-      <div className="sticky top-0 z-50 flex items-center h-10 px-4 bg-surface-50 border-b border-surface-200 shrink-0">
-        <Link
-          to="/prototypes"
-          className="flex items-center gap-2 text-sm text-surface-500 hover:text-surface-900 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to workspace
-        </Link>
-      </div>
-      <div className="sandbox-prototype flex-1 w-full">
-        <PrototypeProvider>
+      <PrototypeProvider>
+        <div className="sticky top-0 z-50 shrink-0">
+          <PrototypeHeader name={proto.name} />
+        </div>
+        <div className="sandbox-prototype flex-1 w-full">
           <Suspense
             fallback={
               <div className="flex items-center justify-center py-20">
@@ -55,8 +49,8 @@ export default function PrototypeView({ prototypes }: PrototypeViewProps) {
           >
             <LazyComponent />
           </Suspense>
-        </PrototypeProvider>
-      </div>
+        </div>
+      </PrototypeProvider>
     </div>
   )
 }

@@ -1,0 +1,43 @@
+{
+  "featureName": "entrata-experts-token-usage",
+  "createdAt": "2026-03-10T20:00:00Z",
+  "specSource": "User description: GPT-like interface with usage indicators at 50/75/90/100% thresholds, plus admin panel for client/property/user usage monitoring and conversation audit.",
+  "plan": {
+    "screens": [
+      {
+        "name": "Chat Interface (User View)",
+        "states": ["normal", "loading", "error", "empty"],
+        "description": "GPT-like chat with ELI components, sidebar conversation history, usage meter, and threshold banners"
+      },
+      {
+        "name": "Admin Dashboard",
+        "states": ["normal", "loading", "error", "empty"],
+        "description": "Overview with stat cards, property usage table, and users-near-limit table"
+      },
+      {
+        "name": "Admin Users Table",
+        "states": ["normal", "loading", "error", "empty"],
+        "description": "Filterable, sortable table of all users with usage bars and audit actions"
+      },
+      {
+        "name": "Conversation Audit",
+        "states": ["normal", "loading", "error", "empty"],
+        "description": "User detail view with expandable conversation history and flagged topic indicators"
+      }
+    ],
+    "components": [
+      "ChatSidebar",
+      "ChatInterface",
+      "UsageMeter",
+      "UsageBanner",
+      "AdminDashboard",
+      "AdminUsageTable",
+      "ConversationAudit"
+    ],
+    "navigation": {
+      "activeTab": "Tools",
+      "activeSubTab": "Entrata Experts"
+    }
+  },
+  "changelog": []
+}

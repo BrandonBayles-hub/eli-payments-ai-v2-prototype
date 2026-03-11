@@ -1,0 +1,6 @@
+{
+  "title": "Entrata Experts — Token Usage",
+  "description": "GPT-like AI chat interface with token usage tracking, threshold notifications (50/75/90/100%), and an admin panel for monitoring usage at client, property, and user levels with conversation audit capabilities.",
+  "section": "Tools",
+  "tags": ["AI", "usage", "admin", "chat", "tokens", "experts"]
+}

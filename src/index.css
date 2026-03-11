@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+@import "./styles/sandbox-bridge.css";
+@source "../../prototype-sandbox/src";
+
+/*
+ * Workspace Control Center theme — scoped additions that don't conflict
+ * with the sandbox design system. The sandbox's @theme inline in
+ * sandbox-bridge.css is the authoritative source for all prototype styling.
+ *
+ * These tokens are ONLY used by the Control Center UI (src/pages/, src/components/layout/).
+ * Prototypes never reference brand-*, surface-*, or workspace-specific classes.
+ */
+@theme inline {
+  --color-brand-50: #f3f0ff;
+  --color-brand-100: #ebe5ff;
+  --color-brand-200: #d4c4ff;
+  --color-brand-300: #b197fc;
+  --color-brand-400: #9775fa;
+  --color-brand-500: #7C3AED;
+  --color-brand-600: #6d28d9;
+  --color-brand-700: #5b21b6;
+  --color-brand-800: #4c1d95;
+  --color-brand-900: #3b0764;
+
+  --color-accent-soft: rgba(20, 184, 166, 0.08);
+
+  --color-surface-50: #FAFBFF;
+  --color-surface-100: #F3F1FB;
+  --color-surface-200: #E8E5F0;
+  --color-surface-300: #D4D0E0;
+  --color-surface-400: #8380A0;
+  --color-surface-500: #4A4660;
+  --color-surface-600: #3D3955;
+  --color-surface-700: #2D2A40;
+  --color-surface-800: #1E1B30;
+  --color-surface-900: #131020;
+
+  --color-danger: #ef4444;
+
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+/*
+ * Control Center body defaults — these apply to the workspace shell.
+ * Prototypes override these via the sandbox's :root variables and
+ * the .sandbox-prototype scope in PrototypeView.
+ */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface-50);
+  color: var(--color-surface-900);
+  margin: 0;
+}
+
+/*
+ * Prototype sandbox scope — when a prototype is rendered inside
+ * PrototypeView's .sandbox-prototype wrapper, the sandbox's own
+ * design system takes full control. This resets the workspace's
+ * body-level styles so they don't bleed in.
+ */
+.sandbox-prototype {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: var(--font-size, 16px);
+  color: var(--foreground);
+  background-color: var(--background);
+}
+
+/* ===== Control Center utility classes (workspace shell only) ===== */
+
+.gradient-text {
+  background: linear-gradient(135deg, #7C3AED, #14B8A6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--color-surface-200);
+  border-radius: 20px;
+  box-shadow: 0 1px 3px rgba(19,16,32,0.04), 0 4px 16px rgba(19,16,32,0.06);
+}
+
+.card-hover {
+  transition: all 0.2s ease;
+}
+.card-hover:hover {
+  box-shadow: 0 4px 20px rgba(124,58,237,0.12), 0 8px 32px rgba(19,16,32,0.08);
+  transform: translateY(-2px);
+  border-color: rgba(124,58,237,0.3);
+}
+
+.section-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  font-family: 'IBM Plex Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-surface-400);
+}
+
+@keyframes ambient-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.05); }
+  50% { transform: translate(-20px, 30px) scale(0.95); }
+  75% { transform: translate(20px, 20px) scale(1.02); }
+}
+
+.ambient-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.3;
+  animation: ambient-drift 25s ease-in-out infinite;
+  pointer-events: none;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.25); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.45); }

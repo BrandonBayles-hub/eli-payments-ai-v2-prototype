@@ -1,0 +1,25 @@
+---
+description: Entrata product context and Product OS architecture
+globs: 
+alwaysApply: true
+---
+
+# Product OS Architecture
+
+This workspace is part of the Entrata Product OS. Three repos work together as siblings:
+
+- `../prototype-sandbox/` -- Entrata design system, UI components, prototyping runtime
+- `../product-spec-kit/` -- Shared skills, templates, onboarding, governance
+- `./` -- This Product OS Workspace
+
+All repos are in the `entrata-product` GitHub organization.
+The `entrata` GitHub organization is engineering-only. PMs do not have write access.
+
+# Key Paths
+
+- Skills: discovered automatically from `../product-spec-kit/.cursor/skills/`
+- Templates: `../product-spec-kit/artifacts/templates/`
+- Design system rules: `../prototype-sandbox/CLAUDE.md`
+- Components: `../prototype-sandbox/COMPONENTS.md`
+- Terminology: `../product-spec-kit/artifacts/terminology.md`
+- Personas: `../product-spec-kit/artifacts/personas.md`

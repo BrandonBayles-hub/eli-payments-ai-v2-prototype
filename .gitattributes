@@ -1,0 +1,27 @@
+# Upstream merge strategy for Product OS Workspace
+#
+# This file tells Git how to handle merges when pulling updates from the
+# workspace template (upstream). Files marked "merge=ours" are NEVER
+# overwritten by upstream — your personal content is always preserved.
+#
+# How it works:
+#   - You push your work to origin (your personal workspace repo)
+#   - The template maintainer pushes platform updates to the template repo
+#   - When you pull from upstream, Git merges platform changes in but
+#     skips anything marked merge=ours
+#
+# To enable the "ours" driver (done automatically by setup.sh):
+#   git config merge.ours.driver true
+
+# ── Personal files: NEVER overwritten by upstream ──
+context/me.md                merge=ours
+context/product-area.md      merge=ours
+context/memory.md            merge=ours
+context/tasks.md             merge=ours
+
+# ── Directories that are purely personal ──
+# Git doesn't track directories, but these patterns protect any file
+# a PM creates inside them from upstream conflicts.
+prototypes/**                merge=ours
+scratch/**                   merge=ours
+knowledge/**                 merge=ours

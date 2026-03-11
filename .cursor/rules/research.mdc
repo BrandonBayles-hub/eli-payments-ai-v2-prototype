@@ -1,0 +1,15 @@
+---
+description: Research file guidance
+globs: **/research/**
+alwaysApply: false
+---
+
+# Research
+
+When working on research files:
+
+- Organize findings clearly with sources
+- Separate facts from opinions
+- Include date of research (information ages quickly)
+- Link to original sources when possible
+- Summarize key takeaways at the top

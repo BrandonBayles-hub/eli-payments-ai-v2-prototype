@@ -1,0 +1,25 @@
+---
+description: PM identity, workspace context, and first-run detection
+globs: 
+alwaysApply: true
+---
+
+# PM Identity
+
+Read `./context/me.md` for the PM's name, product area, team, and focus areas.
+Read `./context/product-area.md` for domain details and key metrics.
+Read `./context/memory.md` for accumulated preferences, decisions, and corrections.
+
+Use this context to personalize responses and understand the PM's domain.
+
+# First-Run Detection
+
+If `./context/me.md` still contains placeholder text like `[Your Name]`, `<!-- Your full name`, or unfilled template markers, this PM has not completed onboarding. Invoke the `/first-run` skill to walk them through setup interactively. Do not wait for them to ask.
+
+# Branch Safety
+
+Before creating files in `./prototypes/` or making any significant feature work, ALWAYS check the current Git branch by running `git branch --show-current`. If the PM is on `main`, STOP and ask before proceeding:
+
+> You're on the `main` branch. I recommend creating a feature branch first so your work stays organized and `main` stays clean. Want me to help you create one?
+
+Only proceed on `main` if the PM explicitly says to. This check is mandatory — do not skip it.

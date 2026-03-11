@@ -1,0 +1,15 @@
+---
+description: Planning guidance for feature plans
+globs: **/plan.md
+alwaysApply: false
+---
+
+# Planning
+
+When working on a plan.md file:
+
+- Use the plan template from `../product-spec-kit/artifacts/templates/plan-template.md`
+- A good plan has: clear problem statement, measurable outcomes, explicit scope, non-goals, measures of done
+- Keep plans concise (1-2 pages)
+- Call out open questions explicitly
+- Plans should be drafted in Cursor's Plan Mode first

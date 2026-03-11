@@ -1,0 +1,8 @@
+# Large files that don't need to be indexed
+node_modules/
+dist/
+build/
+*.mp3
+*.mp4
+*.zip
+*.tgz

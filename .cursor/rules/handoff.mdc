@@ -1,0 +1,15 @@
+---
+description: Handoff guidance for engineering handoffs
+globs: **/handoff.md
+alwaysApply: false
+---
+
+# Handoff
+
+When working on a handoff.md file:
+
+- Use the handoff template from `../product-spec-kit/artifacts/templates/handoff-template.md`
+- Every handoff must include: PLACEMENT.md, prototype location, key decisions, what's done vs not done
+- Include "How to Run Locally" steps
+- Link to the Jira epic
+- If design-critique was run, include the score

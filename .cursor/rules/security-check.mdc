@@ -1,0 +1,13 @@
+---
+description: Security guardrails for Product OS workspaces
+globs: 
+alwaysApply: true
+---
+
+# Security
+
+- NEVER commit .env files, API keys, tokens, passwords, or credentials
+- Check .gitignore before committing
+- Do not hardcode URLs with authentication tokens
+- Do not include personal GitHub tokens in any file
+- If you see a secret in staged changes, warn the PM immediately

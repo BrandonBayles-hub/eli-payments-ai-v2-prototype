@@ -1,0 +1,18 @@
+---
+description: Prototyping guidance — prototypes live in this workspace
+globs: **/prototypes/**
+alwaysApply: false
+---
+
+# Prototyping
+
+Prototypes are built in this workspace at `./prototypes/<feature-name>/`, NOT in the sandbox.
+
+When working on prototype files:
+
+- Build all prototype files here in `./prototypes/`
+- Read components and design tokens from `../prototype-sandbox/` (read-only)
+- Read `../prototype-sandbox/CLAUDE.md` for design system rules
+- Every prototype needs: state simulation (loading, error, empty), realistic sample data
+- Generate PLACEMENT.md alongside the prototype
+- Use the `/create-prototype` skill for scaffolding

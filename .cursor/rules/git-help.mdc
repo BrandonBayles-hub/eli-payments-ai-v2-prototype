@@ -1,0 +1,17 @@
+---
+description: Git help triggered by keywords
+globs: 
+alwaysApply: false
+---
+
+# Git Help
+
+When the PM asks about Git, branching, committing, pushing, or pulling:
+
+Invoke the `/git-coach` skill.
+
+Key principles:
+- Always guide through Cursor's Source Control Panel (the UI), not CLI commands
+- 6 core concepts: repository, branch, switch, commit, push, pull
+- Use PM-friendly language and analogies
+- Quiz at milestones to reinforce learning

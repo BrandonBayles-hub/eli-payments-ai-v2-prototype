@@ -1,0 +1,367 @@
+/*
+ * Bridge file that provides the prototype-sandbox's design tokens and Tailwind
+ * theme registration so sandbox components render correctly inside the workspace.
+ *
+ * This duplicates the sandbox's globals.css @theme inline block and CSS variables.
+ * The workspace's own Tailwind processes this file, generating all the utility
+ * classes (bg-card, text-muted-foreground, bg-green-100, etc.) that sandbox
+ * components depend on.
+ */
+
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  :root {
+    --font-size: 16px;
+    font-family: "Inter", system-ui, sans-serif;
+    --background: hsl(0 0% 96%);
+    --foreground: hsl(0 0% 5%);
+    --card: hsl(0 0% 99%);
+    --card-foreground: hsl(0 0% 5%);
+    --popover: hsl(0 0% 99%);
+    --popover-foreground: hsl(0 0% 5%);
+    --primary: hsl(207 73% 40%);
+    --primary-foreground: hsl(0 0% 99%);
+    --primary-border: hsl(207 73% 30%);
+    --secondary: hsl(207 73% 90%);
+    --secondary-foreground: hsl(207 73% 40%);
+    --secondary-border: hsl(207 73% 80%);
+    --muted: hsl(0 0% 90%);
+    --muted-foreground: hsl(0 0% 48%);
+    --accent: hsl(207 73% 95%);
+    --accent-foreground: hsl(207 73% 10%);
+    --error: hsl(357 64% 90%);
+    --error-foreground: hsl(357 64% 30%);
+    --error-border: hsl(357 64% 80%);
+    --destructive: hsl(357 64% 90%);
+    --destructive-foreground: hsl(357 64% 30%);
+    --destructive-border: hsl(357 64% 80%);
+    --success: hsl(127 22% 90%);
+    --success-foreground: hsl(127 22% 40%);
+    --success-border: hsl(127 22% 80%);
+    --info: hsl(207 73% 90%);
+    --info-foreground: hsl(207 73% 30%);
+    --info-border: hsl(207 73% 80%);
+    --warning: hsl(43 100% 90%);
+    --warning-foreground: hsl(43 100% 30%);
+    --warning-border: hsl(43 100% 70%);
+    --border: hsl(0 0% 90%);
+    --input: hsl(0 0% 90%);
+    --input-background: hsl(0 0% 98%);
+    --input-error-foreground: hsl(357 64% 50%);
+    --input-error-border: hsl(357 64% 30%);
+    --switch-background: hsl(207 73% 40%);
+    --ring: hsl(0 0% 72%);
+    --chart-1: 195 33% 50%;
+    --chart-2: 330 49% 50%;
+    --chart-3: 62 33% 50%;
+    --chart-4: 37 89% 50%;
+    --chart-5: 220 48% 50%;
+    --radius: 0.5rem;
+    --sidebar: hsl(0 0% 99%);
+    --sidebar-foreground: hsl(0 0% 5%);
+    --sidebar-primary: hsl(207 73% 40%);
+    --sidebar-primary-foreground: hsl(0 0% 99%);
+    --sidebar-accent: hsl(0 0% 97%);
+    --sidebar-accent-foreground: hsl(0 0% 20.5%);
+    --sidebar-border: hsl(0 0% 92.2%);
+    --sidebar-ring: hsl(0 0% 70.8%);
+    --validation-error: hsl(357 64% 95%);
+    --validation-error-foreground: hsl(357 64% 50%);
+    --validation-error-border: hsl(357 64% 70%);
+    --validation-error-icon: hsl(357 64% 50%);
+    --validation-error-ring: hsl(357 64% 50%);
+    --link-foreground: hsl(207 73% 40%);
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --eli-purple: #9B6FF4;
+    --eli-purple-dark: #5726BA;
+    --eli-blue: #2F6FF2;
+    --eli-magenta: #C454E0;
+    --eli-pink: #D975EB;
+    --eli-red: #E42127;
+    --eli-purple-light: #C4A8F9;
+    --eli-blue-light: #8AB5FB;
+    --eli-magenta-light: #DDA4EF;
+    --eli-pink-light: #E8BFF5;
+    --eli-warm-bg: hsl(30 60% 97%);
+    --eli-warm-bg-foreground: hsl(30 20% 30%);
+    --eli-warm-text: #f3b5b8;
+  }
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-border: var(--primary-border);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-border: var(--secondary-border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-border: var(--destructive-border);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-input-error-foreground: var(--input-error-foreground);
+  --color-input-error-border: var(--input-error-border);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-error-border: var(--error-border);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-border: var(--success-border);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-border: var(--info-border);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-border: var(--warning-border);
+
+  --color-validation-error: var(--validation-error);
+  --color-validation-error-foreground: var(--validation-error-foreground);
+  --color-validation-error-border: var(--validation-error-border);
+  --color-validation-error-icon: var(--validation-error-icon);
+  --color-validation-error-ring: var(--validation-error-ring);
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-link-foreground: var(--link-foreground);
+
+  --color-white: hsl(0 0% 99%);
+  --color-black: hsl(0 0% 5%);
+
+  --color-gray-50: hsl(0 0% 96%);
+  --color-gray-100: hsl(0 0% 91%);
+  --color-gray-200: hsl(0 0% 85%);
+  --color-gray-300: hsl(0 0% 77%);
+  --color-gray-400: hsl(0 0% 68%);
+  --color-gray-500: hsl(0 0% 59%);
+  --color-gray-600: hsl(0 0% 45%);
+  --color-gray-700: hsl(0 0% 30%);
+  --color-gray-800: hsl(0 0% 20%);
+  --color-gray-900: hsl(0 0% 13%);
+  --color-gray-950: hsl(0 0% 8%);
+
+  --color-blue-50: hsl(207 73% 95%);
+  --color-blue-100: hsl(207 73% 90%);
+  --color-blue-200: hsl(207 73% 80%);
+  --color-blue-300: hsl(207 73% 70%);
+  --color-blue-400: hsl(207 73% 60%);
+  --color-blue-500: hsl(207 73% 50%);
+  --color-blue-600: hsl(207 73% 40%);
+  --color-blue-700: hsl(207 73% 30%);
+  --color-blue-800: hsl(207 73% 20%);
+  --color-blue-900: hsl(207 73% 10%);
+  --color-blue-950: hsl(207 73% 5%);
+
+  --color-teal-50: hsl(195 33% 95%);
+  --color-teal-100: hsl(195 33% 90%);
+  --color-teal-200: hsl(195 33% 80%);
+  --color-teal-300: hsl(195 33% 70%);
+  --color-teal-400: hsl(195 33% 60%);
+  --color-teal-500: hsl(195 33% 50%);
+  --color-teal-600: hsl(195 33% 40%);
+  --color-teal-700: hsl(195 33% 30%);
+  --color-teal-800: hsl(195 33% 20%);
+  --color-teal-900: hsl(195 33% 10%);
+  --color-teal-950: hsl(195 33% 5%);
+
+  --color-green-50: hsl(127 22% 95%);
+  --color-green-100: hsl(127 22% 90%);
+  --color-green-200: hsl(127 22% 80%);
+  --color-green-300: hsl(127 22% 70%);
+  --color-green-400: hsl(127 22% 60%);
+  --color-green-500: hsl(127 22% 50%);
+  --color-green-600: hsl(127 22% 40%);
+  --color-green-700: hsl(127 22% 30%);
+  --color-green-800: hsl(127 22% 20%);
+  --color-green-900: hsl(127 22% 10%);
+  --color-green-950: hsl(127 22% 5%);
+
+  --color-yellow-50: hsl(43 100% 95%);
+  --color-yellow-100: hsl(43 100% 90%);
+  --color-yellow-200: hsl(43 100% 80%);
+  --color-yellow-300: hsl(43 100% 70%);
+  --color-yellow-400: hsl(43 100% 60%);
+  --color-yellow-500: hsl(43 100% 50%);
+  --color-yellow-600: hsl(43 100% 40%);
+  --color-yellow-700: hsl(43 100% 30%);
+  --color-yellow-800: hsl(43 100% 20%);
+  --color-yellow-900: hsl(43 100% 10%);
+  --color-yellow-950: hsl(43 100% 5%);
+
+  --color-red-50: hsl(357 64% 95%);
+  --color-red-100: hsl(357 64% 90%);
+  --color-red-200: hsl(357 64% 80%);
+  --color-red-300: hsl(357 64% 70%);
+  --color-red-400: hsl(357 64% 60%);
+  --color-red-500: hsl(357 64% 50%);
+  --color-red-600: hsl(357 64% 40%);
+  --color-red-700: hsl(357 64% 30%);
+  --color-red-800: hsl(357 64% 20%);
+  --color-red-900: hsl(357 64% 10%);
+  --color-red-950: hsl(357 64% 5%);
+
+  --color-orange-50: hsl(30 78% 95%);
+  --color-orange-100: hsl(30 78% 90%);
+  --color-orange-200: hsl(30 78% 80%);
+  --color-orange-300: hsl(30 78% 70%);
+  --color-orange-400: hsl(30 78% 60%);
+  --color-orange-500: hsl(30 78% 50%);
+  --color-orange-600: hsl(30 78% 40%);
+  --color-orange-700: hsl(30 78% 30%);
+  --color-orange-800: hsl(30 78% 20%);
+  --color-orange-900: hsl(30 78% 10%);
+  --color-orange-950: hsl(30 78% 5%);
+
+  --color-amber-50: hsl(37 89% 95%);
+  --color-amber-100: hsl(37 89% 90%);
+  --color-amber-200: hsl(37 89% 80%);
+  --color-amber-300: hsl(37 89% 70%);
+  --color-amber-400: hsl(37 89% 60%);
+  --color-amber-500: hsl(37 89% 50%);
+  --color-amber-600: hsl(37 89% 40%);
+  --color-amber-700: hsl(37 89% 30%);
+  --color-amber-800: hsl(37 89% 20%);
+  --color-amber-900: hsl(37 89% 10%);
+  --color-amber-950: hsl(37 89% 5%);
+
+  --color-purple-50: hsl(300 33% 95%);
+  --color-purple-100: hsl(300 33% 91%);
+  --color-purple-200: hsl(300 33% 83%);
+  --color-purple-300: hsl(300 33% 72%);
+  --color-purple-400: hsl(300 33% 62%);
+  --color-purple-500: hsl(300 33% 52%);
+  --color-purple-600: hsl(300 33% 42%);
+  --color-purple-700: hsl(300 33% 32%);
+  --color-purple-800: hsl(300 33% 22%);
+  --color-purple-900: hsl(300 33% 12%);
+  --color-purple-950: hsl(300 33% 5%);
+
+  --color-lime-50: hsl(62 33% 95%);
+  --color-lime-100: hsl(62 33% 90%);
+  --color-lime-200: hsl(62 33% 80%);
+  --color-lime-300: hsl(62 33% 70%);
+  --color-lime-400: hsl(62 33% 60%);
+  --color-lime-500: hsl(62 33% 50%);
+  --color-lime-600: hsl(62 33% 40%);
+  --color-lime-700: hsl(62 33% 30%);
+  --color-lime-800: hsl(62 33% 20%);
+  --color-lime-900: hsl(62 33% 10%);
+  --color-lime-950: hsl(62 33% 5%);
+
+  --color-indigo-50: hsl(220 48% 95%);
+  --color-indigo-100: hsl(220 48% 90%);
+  --color-indigo-200: hsl(220 48% 80%);
+  --color-indigo-300: hsl(220 48% 70%);
+  --color-indigo-400: hsl(220 48% 60%);
+  --color-indigo-500: hsl(220 48% 50%);
+  --color-indigo-600: hsl(220 48% 40%);
+  --color-indigo-700: hsl(220 48% 30%);
+  --color-indigo-800: hsl(220 48% 20%);
+  --color-indigo-900: hsl(220 48% 10%);
+  --color-indigo-950: hsl(220 48% 5%);
+
+  --color-pink-50: hsl(330 49% 95%);
+  --color-pink-100: hsl(330 49% 90%);
+  --color-pink-200: hsl(330 49% 80%);
+  --color-pink-300: hsl(330 49% 70%);
+  --color-pink-400: hsl(330 49% 60%);
+  --color-pink-500: hsl(330 49% 50%);
+  --color-pink-600: hsl(330 49% 40%);
+  --color-pink-700: hsl(330 49% 30%);
+  --color-pink-800: hsl(330 49% 20%);
+  --color-pink-900: hsl(330 49% 10%);
+  --color-pink-950: hsl(330 49% 5%);
+
+  --color-rose-50: hsl(15 71% 95%);
+  --color-rose-100: hsl(15 71% 90%);
+  --color-rose-200: hsl(15 71% 80%);
+  --color-rose-300: hsl(15 71% 70%);
+  --color-rose-400: hsl(15 71% 60%);
+  --color-rose-500: hsl(15 71% 50%);
+  --color-rose-600: hsl(15 71% 40%);
+  --color-rose-700: hsl(15 71% 30%);
+  --color-rose-800: hsl(15 71% 20%);
+  --color-rose-900: hsl(15 71% 10%);
+  --color-rose-950: hsl(15 71% 5%);
+
+  --color-brown-50: hsl(28 38% 95%);
+  --color-brown-100: hsl(28 38% 90%);
+  --color-brown-200: hsl(28 38% 80%);
+  --color-brown-300: hsl(28 38% 70%);
+  --color-brown-400: hsl(28 38% 60%);
+  --color-brown-500: hsl(28 38% 50%);
+  --color-brown-600: hsl(28 38% 40%);
+  --color-brown-700: hsl(28 38% 30%);
+  --color-brown-800: hsl(28 38% 20%);
+  --color-brown-900: hsl(28 38% 10%);
+  --color-brown-950: hsl(28 38% 5%);
+
+  --color-zinc-50: hsl(0 0% 96%);
+  --color-zinc-100: hsl(0 0% 91%);
+  --color-zinc-200: hsl(0 0% 85%);
+  --color-zinc-300: hsl(0 0% 77%);
+  --color-zinc-400: hsl(0 0% 68%);
+  --color-zinc-500: hsl(0 0% 59%);
+  --color-zinc-600: hsl(0 0% 45%);
+  --color-zinc-700: hsl(0 0% 30%);
+  --color-zinc-800: hsl(0 0% 20%);
+  --color-zinc-900: hsl(0 0% 13%);
+  --color-zinc-950: hsl(0 0% 8%);
+
+  --color-eli-purple: var(--eli-purple);
+  --color-eli-purple-dark: var(--eli-purple-dark);
+  --color-eli-blue: var(--eli-blue);
+  --color-eli-magenta: var(--eli-magenta);
+  --color-eli-pink: var(--eli-pink);
+  --color-eli-red: var(--eli-red);
+  --color-eli-purple-light: var(--eli-purple-light);
+  --color-eli-blue-light: var(--eli-blue-light);
+  --color-eli-magenta-light: var(--eli-magenta-light);
+  --color-eli-pink-light: var(--eli-pink-light);
+  --color-eli-warm-bg: var(--eli-warm-bg);
+  --color-eli-warm-bg-foreground: var(--eli-warm-bg-foreground);
+  --color-eli-warm-text: var(--eli-warm-text);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+}

@@ -39,5 +39,21 @@
       "activeSubTab": "Entrata Experts"
     }
   },
-  "changelog": []
+  "changelog": [
+    {
+      "timestamp": "2026-03-10T22:00:00Z",
+      "summary": "Added Entrata Internal admin view for beta management. Includes cross-client usage dashboard with status indicators, client detail view with allotment adjustment controls, preset quick-adjust options, and full allotment change history audit trail.",
+      "filesModified": ["types.ts", "sample-data.ts", "InternalDashboard.tsx", "AllotmentManager.tsx", "index.tsx"]
+    },
+    {
+      "timestamp": "2026-03-11T04:30:00Z",
+      "summary": "Major rework: added shared state management (TokenUsageContext) so all three views are connected. Chat messages now consume real tokens, usage meter and threshold banners update live, and allotment changes from the Entrata Internal view immediately impact the user's chat experience. Removed the static 'Usage Level' toggle — thresholds now emerge naturally from actual usage. Added 12 AI response templates for realistic chat interactions.",
+      "filesModified": ["TokenUsageContext.tsx", "ChatInterface.tsx", "AllotmentManager.tsx", "index.tsx", "sample-data.ts", "types.ts"]
+    },
+    {
+      "timestamp": "2026-03-11T06:00:00Z",
+      "summary": "Three UX improvements: (1) Per-message token cost indicators on AI responses so users understand what's expensive, (2) usage summary card on the chat welcome screen showing remaining tokens, conversation count, and period reset date, (3) tab navigation (Overview / All Users) in the Client Settings admin view replacing the one-way URL transition.",
+      "filesModified": ["types.ts", "TokenUsageContext.tsx", "ChatInterface.tsx", "index.tsx"]
+    }
+  ]
 }

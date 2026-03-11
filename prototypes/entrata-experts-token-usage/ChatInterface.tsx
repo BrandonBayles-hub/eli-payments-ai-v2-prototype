@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { Bot, Sparkles, Lock } from "lucide-react"
+import { Bot, Sparkles, Lock, Zap, MessageSquare, Calendar } from "lucide-react"
 import { EliChatBubble } from "@sandbox-components/eli/EliChatBubble"
 import { EliChatInput } from "@sandbox-components/eli/EliChatInput"
 import { EliTypingIndicator } from "@sandbox-components/eli/EliTypingIndicator"
@@ -7,39 +7,40 @@ import { ScrollArea } from "@sandbox-components/ui/scroll-area"
 import { Button } from "@sandbox-components/ui/button"
 import { Skeleton } from "@sandbox-components/ui/skeleton"
 import { EmptyState } from "@sandbox-components/composite/EmptyState"
-import { cn } from "@sandbox-lib/utils"
 import { UsageBanner } from "./UsageBanner"
 import { UsageMeter } from "./UsageMeter"
-import type { Conversation, UsageStats, UsageThreshold } from "./types"
+import { useTokenUsage } from "./TokenUsageContext"
 import { suggestedPrompts } from "./sample-data"
 
 interface ChatInterfaceProps {
-  conversation: Conversation | null
-  usage: UsageStats
-  threshold: UsageThreshold
   viewState: string
-  onSendMessage: (message: string) => void
 }
 
-export function ChatInterface({
-  conversation,
-  usage,
-  threshold,
-  viewState,
-  onSendMessage,
-}: ChatInterfaceProps) {
+export function ChatInterface({ viewState }: ChatInterfaceProps) {
+  const {
+    activeConversation,
+    usageStats,
+    threshold,
+    percentUsed,
+    sendUserMessage,
+    generateResponse,
+  } = useTokenUsage()
+
   const [isProcessing, setIsProcessing] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [conversation?.messages.length])
+  }, [activeConversation?.messages.length, isProcessing])
 
   const handleSend = (message: string) => {
-    if (threshold === "at-100") return
+    if (percentUsed >= 100 || isProcessing) return
+    sendUserMessage(message)
     setIsProcessing(true)
-    onSendMessage(message)
-    setTimeout(() => setIsProcessing(false), 1500)
+    setTimeout(() => {
+      generateResponse()
+      setIsProcessing(false)
+    }, 1200)
   }
 
   if (viewState === "loading") {
@@ -80,12 +81,14 @@ export function ChatInterface({
     )
   }
 
-  if (viewState === "empty" || !conversation) {
+  const conversation = viewState === "empty" ? null : activeConversation
+
+  if (!conversation) {
     return (
       <div className="flex flex-col h-full">
         {threshold !== "under-50" && (
           <div className="px-6 pt-4">
-            <UsageBanner threshold={threshold} periodEnd={usage.periodEnd} />
+            <UsageBanner threshold={threshold} periodEnd={usageStats.periodEnd} />
           </div>
         )}
 
@@ -100,11 +103,31 @@ export function ChatInterface({
             </p>
           </div>
 
+          <div className="grid grid-cols-3 gap-4 max-w-lg w-full mb-8">
+            <div className="flex flex-col items-center gap-1 rounded-lg border p-3">
+              <Zap className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              <span className="text-lg font-semibold">
+                {(usageStats.tokenLimit - usageStats.tokensUsed).toLocaleString()}
+              </span>
+              <span className="text-xs text-muted-foreground">tokens remaining</span>
+            </div>
+            <div className="flex flex-col items-center gap-1 rounded-lg border p-3">
+              <MessageSquare className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              <span className="text-lg font-semibold">{usageStats.conversationCount}</span>
+              <span className="text-xs text-muted-foreground">conversations</span>
+            </div>
+            <div className="flex flex-col items-center gap-1 rounded-lg border p-3">
+              <Calendar className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              <span className="text-sm font-semibold">{usageStats.periodEnd}</span>
+              <span className="text-xs text-muted-foreground">period resets</span>
+            </div>
+          </div>
+
           {threshold === "at-100" ? (
             <div className="flex flex-col items-center text-center">
               <Lock className="h-8 w-8 text-muted-foreground mb-3" aria-hidden="true" />
               <p className="text-sm text-muted-foreground max-w-sm">
-                You've reached your monthly token limit. Your usage will reset on {usage.periodEnd}.
+                You've reached your monthly token limit. Your usage will reset on {usageStats.periodEnd}.
                 Contact your administrator for questions about your allocation.
               </p>
             </div>
@@ -140,22 +163,31 @@ export function ChatInterface({
     <div className="flex flex-col h-full">
       {threshold !== "under-50" && (
         <div className="px-6 pt-4">
-          <UsageBanner threshold={threshold} periodEnd={usage.periodEnd} />
+          <UsageBanner threshold={threshold} periodEnd={usageStats.periodEnd} />
         </div>
       )}
 
       <ScrollArea className="flex-1 px-6 py-4">
         <div className="max-w-3xl mx-auto space-y-4">
           {conversation.messages.map((msg) => (
-            <EliChatBubble
-              key={msg.id}
-              sender={msg.sender === "assistant" ? "eli" : "user"}
-              timestamp={msg.timestamp}
-              userName={msg.sender === "user" ? "You" : undefined}
-              aiStatus={msg.sender === "assistant" ? "ELI Generated" : undefined}
-            >
-              <div className="whitespace-pre-wrap">{msg.content}</div>
-            </EliChatBubble>
+            <div key={msg.id}>
+              <EliChatBubble
+                sender={msg.sender === "assistant" ? "eli" : "user"}
+                timestamp={msg.timestamp}
+                userName={msg.sender === "user" ? "You" : undefined}
+                aiStatus={msg.sender === "assistant" ? "ELI Generated" : undefined}
+              >
+                <div className="whitespace-pre-wrap">{msg.content}</div>
+              </EliChatBubble>
+              {msg.sender === "assistant" && msg.tokenCost != null && (
+                <div className="flex items-center gap-1 ml-10 mt-1 mb-2">
+                  <Zap className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+                  <span className="text-xs text-muted-foreground">
+                    {msg.tokenCost.toLocaleString()} tokens used
+                  </span>
+                </div>
+              )}
+            </div>
           ))}
 
           {isProcessing && <EliTypingIndicator label="Entrata Experts is thinking..." />}
@@ -169,7 +201,7 @@ export function ChatInterface({
           {threshold === "at-100" ? (
             <div className="flex items-center justify-center gap-2 py-3 text-sm text-muted-foreground">
               <Lock className="h-4 w-4" aria-hidden="true" />
-              <span>Token limit reached — usage resets {usage.periodEnd}</span>
+              <span>Token limit reached — usage resets {usageStats.periodEnd}</span>
             </div>
           ) : (
             <EliChatInput
@@ -179,7 +211,7 @@ export function ChatInterface({
             />
           )}
           <div className="flex items-center justify-center">
-            <UsageMeter usage={usage} threshold={threshold} compact />
+            <UsageMeter usage={usageStats} threshold={threshold} compact />
           </div>
         </div>
       </div>

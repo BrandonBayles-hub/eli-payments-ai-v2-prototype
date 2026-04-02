@@ -1,0 +1,7 @@
+{
+  "title": "ELI+ Implementation Tracker",
+  "description": "Client-facing implementation tracker for ELI+ (Leasing AI, Payments AI, Renewals AI, Maintenance AI). Shows what the client needs to provide, per-property readiness across 100+ properties, and internal pipeline visibility for Entrata employees.",
+  "author": "Cal Harris",
+  "created": "2026-04-01",
+  "tags": ["eli+", "implementation", "onboarding", "oxp", "client-facing"]
+}

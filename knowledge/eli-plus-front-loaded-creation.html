@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELI+ Front-Loaded Account & Property Creation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c0f;
+    --surface: #16161a;
+    --surface-2: #1e1e24;
+    --surface-3: #26262e;
+    --border: #2e2e38;
+    --border-accent: #3d3d4a;
+    --text: #e8e6e3;
+    --text-muted: #8b8b9e;
+    --text-dim: #5e5e72;
+    --accent-blue: #4d8ef7;
+    --accent-blue-dim: #2a4f8a;
+    --accent-green: #34d399;
+    --accent-green-dim: #1a6b4d;
+    --accent-amber: #f59e0b;
+    --accent-amber-dim: #7a4f06;
+    --accent-purple: #a78bfa;
+    --accent-purple-dim: #5340a0;
+    --accent-red: #f87171;
+    --accent-red-dim: #7c3939;
+    --accent-cyan: #22d3ee;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+    animation: fadeUp 0.6s ease-out;
+  }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent-purple);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .header-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-purple);
+    animation: pulse 2s infinite;
+  }
+
+  .header h1 {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, var(--text) 0%, var(--text-muted) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header p {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* Thesis callout */
+  .thesis {
+    background: linear-gradient(135deg, var(--accent-blue-dim) 0%, var(--surface) 60%);
+    border: 1px solid var(--accent-blue-dim);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-bottom: 56px;
+    animation: fadeUp 0.6s ease-out 0.15s both;
+  }
+
+  .thesis-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .thesis p {
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .thesis strong { color: var(--accent-cyan); }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 28px;
+    top: 56px;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom,
+      var(--accent-blue) 0%,
+      var(--accent-green) 33%,
+      var(--accent-amber) 66%,
+      var(--accent-purple) 100%
+    );
+    opacity: 0.3;
+  }
+
+  /* Phase */
+  .phase {
+    position: relative;
+    padding-left: 72px;
+    padding-bottom: 48px;
+    animation: fadeUp 0.5s ease-out both;
+  }
+
+  .phase:nth-child(1) { animation-delay: 0.2s; }
+  .phase:nth-child(2) { animation-delay: 0.35s; }
+  .phase:nth-child(3) { animation-delay: 0.5s; }
+  .phase:nth-child(4) { animation-delay: 0.65s; }
+  .phase:nth-child(5) { animation-delay: 0.8s; }
+
+  .phase-dot {
+    position: absolute;
+    left: 18px;
+    top: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 3px solid;
+    background: var(--bg);
+    z-index: 2;
+  }
+
+  .phase-dot.blue { border-color: var(--accent-blue); }
+  .phase-dot.green { border-color: var(--accent-green); }
+  .phase-dot.amber { border-color: var(--accent-amber); }
+  .phase-dot.purple { border-color: var(--accent-purple); }
+  .phase-dot.red { border-color: var(--accent-red); }
+
+  .phase-dot.filled {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 12px rgba(77, 142, 247, 0.4);
+  }
+
+  .phase-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .phase-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .phase-title.blue { color: var(--accent-blue); }
+  .phase-title.green { color: var(--accent-green); }
+  .phase-title.amber { color: var(--accent-amber); }
+  .phase-title.purple { color: var(--accent-purple); }
+  .phase-title.red { color: var(--accent-red); }
+
+  .phase-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    max-width: 800px;
+  }
+
+  /* Step cards */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    max-width: 900px;
+  }
+
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    cursor: default;
+  }
+
+  .step:hover {
+    border-color: var(--border-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .step-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .step-icon.blue { background: rgba(77, 142, 247, 0.15); }
+  .step-icon.green { background: rgba(52, 211, 153, 0.15); }
+  .step-icon.amber { background: rgba(245, 158, 11, 0.15); }
+  .step-icon.purple { background: rgba(167, 139, 250, 0.15); }
+  .step-icon.red { background: rgba(248, 113, 113, 0.15); }
+
+  .step-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .step-detail {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .step-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 8px;
+  }
+
+  .step-tag.auto {
+    background: rgba(52, 211, 153, 0.12);
+    color: var(--accent-green);
+  }
+
+  .step-tag.manual {
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--accent-amber);
+  }
+
+  .step-tag.verify {
+    background: rgba(167, 139, 250, 0.12);
+    color: var(--accent-purple);
+  }
+
+  .step-tag.blocker {
+    background: rgba(248, 113, 113, 0.12);
+    color: var(--accent-red);
+  }
+
+  /* Connector arrow between phases */
+  .phase-connector {
+    padding-left: 72px;
+    padding-bottom: 16px;
+    position: relative;
+  }
+
+  .connector-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dim);
+  }
+
+  .connector-line::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Exit criteria */
+  .exit-criteria {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid;
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    margin-top: 16px;
+    max-width: 900px;
+  }
+
+  .exit-criteria.blue { border-left-color: var(--accent-blue); }
+  .exit-criteria.green { border-left-color: var(--accent-green); }
+  .exit-criteria.amber { border-left-color: var(--accent-amber); }
+  .exit-criteria.purple { border-left-color: var(--accent-purple); }
+  .exit-criteria.red { border-left-color: var(--accent-red); }
+
+  .exit-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .exit-label.blue { color: var(--accent-blue); }
+  .exit-label.green { color: var(--accent-green); }
+  .exit-label.amber { color: var(--accent-amber); }
+  .exit-label.purple { color: var(--accent-purple); }
+  .exit-label.red { color: var(--accent-red); }
+
+  .exit-text {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* Summary section */
+  .summary {
+    margin-top: 56px;
+    animation: fadeUp 0.5s ease-out 0.95s both;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+
+  .summary-card:hover { border-color: var(--border-accent); }
+
+  .summary-value {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .summary-value.blue { color: var(--accent-blue); }
+  .summary-value.green { color: var(--accent-green); }
+  .summary-value.amber { color: var(--accent-amber); }
+
+  .summary-label {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Key distinction callout */
+  .distinction {
+    background: var(--surface);
+    border: 1px solid var(--accent-amber-dim);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-top: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .distinction::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-amber), var(--accent-red));
+  }
+
+  .distinction-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent-amber);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .distinction p {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .distinction em {
+    color: var(--accent-amber);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 56px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    animation: fadeUp 0.5s ease-out 1.1s both;
+  }
+
+  .footer a {
+    color: var(--accent-blue);
+    text-decoration: none;
+  }
+
+  /* Diagram section */
+  .diagram-section {
+    margin-top: 56px;
+    margin-bottom: 56px;
+    animation: fadeUp 0.5s ease-out 0.9s both;
+  }
+
+  .diagram-section h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+
+  .flow-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    overflow-x: auto;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-width: 900px;
+    justify-content: center;
+    flex-wrap: nowrap;
+  }
+
+  .flow-node {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    text-align: center;
+    min-width: 150px;
+    position: relative;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .flow-node:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-accent);
+  }
+
+  .flow-node.highlight {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 16px rgba(52, 211, 153, 0.15);
+  }
+
+  .flow-node-icon {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+
+  .flow-node-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .flow-node-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-size: 18px;
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+
+  .flow-label-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-width: 900px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .flow-label-cell {
+    min-width: 150px;
+    text-align: center;
+    padding: 0 18px;
+  }
+
+  .flow-label-cell .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .flow-label-cell .tag.pre-contract { background: rgba(77, 142, 247, 0.15); color: var(--accent-blue); }
+  .flow-label-cell .tag.validation { background: rgba(52, 211, 153, 0.15); color: var(--accent-green); }
+  .flow-label-cell .tag.post-contract { background: rgba(167, 139, 250, 0.15); color: var(--accent-purple); }
+
+  .flow-arrow-spacer {
+    padding: 0 8px;
+    width: 34px;
+  }
+
+  /* Scope box */
+  .scope-bracket {
+    position: relative;
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+    min-width: 900px;
+  }
+
+  .scope-box {
+    border: 2px dashed;
+    border-radius: var(--radius);
+    padding: 12px 24px;
+    text-align: center;
+    position: relative;
+  }
+
+  .scope-box.front-load {
+    border-color: var(--accent-blue-dim);
+    width: 520px;
+    margin-right: 200px;
+  }
+
+  .scope-box.go-live {
+    border-color: var(--accent-green-dim);
+    width: 200px;
+  }
+
+  .scope-box-label {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    padding: 0 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .scope-box.front-load .scope-box-label { color: var(--accent-blue); }
+  .scope-box.go-live .scope-box-label { color: var(--accent-green); }
+
+  .scope-box-content {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .scope-brackets {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 24px;
+    min-width: 900px;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    body { padding: 24px 16px 60px; }
+    .steps { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: 1fr; }
+    .flow-diagram { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">ELI+ Implementation</div>
+    <h1>Front-Loaded Account &<br>Property Creation</h1>
+    <p>Create the shell before the contract. Validate the full end-to-end path with one property and one phone number &mdash; so when the client signs, it's one click to go live.</p>
+  </div>
+
+  <!-- Thesis -->
+  <div class="thesis">
+    <div class="thesis-label">Core Idea</div>
+    <p>Stand up the client account, properties, and one fully verified phone number <strong>before the sales cycle completes</strong>. The purpose is not to go live with this property &mdash; it's to <strong>prove the entire creation-to-activation path works</strong>, so we know we have everything needed when the client is ready. Think of it as a dry run through the plumbing.</p>
+  </div>
+
+  <!-- Flow Diagram -->
+  <div class="diagram-section">
+    <h2>End-to-End Verification Flow</h2>
+    <div class="flow-diagram">
+      <div class="flow-row">
+        <div class="flow-node">
+          <div class="flow-node-icon">🏢</div>
+          <div class="flow-node-label">Create Client Shell</div>
+          <div class="flow-node-sub">Colleen Admin org</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="flow-node-icon">🏠</div>
+          <div class="flow-node-label">Create Properties</div>
+          <div class="flow-node-sub">All portfolio properties</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node highlight">
+          <div class="flow-node-icon">📱</div>
+          <div class="flow-node-label">Verify 1 Number</div>
+          <div class="flow-node-sub">Twilio 10DLC for 1 prop</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="flow-node-icon">⚙️</div>
+          <div class="flow-node-label">Apply Defaults</div>
+          <div class="flow-node-sub">Settings for 1 property</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node highlight">
+          <div class="flow-node-icon">✅</div>
+          <div class="flow-node-label">Validate Path</div>
+          <div class="flow-node-sub">Could go live &mdash; won't yet</div>
+        </div>
+      </div>
+
+      <div class="flow-label-row">
+        <div class="flow-label-cell"><span class="tag pre-contract">Pre-Contract</span></div>
+        <div class="flow-arrow-spacer"></div>
+        <div class="flow-label-cell"><span class="tag pre-contract">Pre-Contract</span></div>
+        <div class="flow-arrow-spacer"></div>
+        <div class="flow-label-cell"><span class="tag validation">Validation</span></div>
+        <div class="flow-arrow-spacer"></div>
+        <div class="flow-label-cell"><span class="tag validation">Validation</span></div>
+        <div class="flow-arrow-spacer"></div>
+        <div class="flow-label-cell"><span class="tag validation">Gate Check</span></div>
+      </div>
+
+      <div class="scope-brackets">
+        <div class="scope-box front-load">
+          <div class="scope-box-label">Front-Loaded (Before Contract)</div>
+          <div class="scope-box-content">
+            Create all structures. Register one number. Apply defaults to one property.<br>
+            <strong style="color: var(--accent-blue);">Goal:</strong> Prove the path works end-to-end.
+          </div>
+        </div>
+        <div class="scope-box go-live">
+          <div class="scope-box-label">Post-Contract</div>
+          <div class="scope-box-content">
+            Repeat for all properties.<br>Go live.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline">
+
+    <!-- Phase 1: Account Shell -->
+    <div class="phase">
+      <div class="phase-dot blue filled"></div>
+      <div class="phase-number">STEP 01</div>
+      <div class="phase-title blue">Create the Client Shell</div>
+      <div class="phase-desc">Stand up the organization in Colleen Admin so the client exists in the system, even before contract.</div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon blue">🏢</div>
+            <div class="step-name">Create Colleen Org</div>
+          </div>
+          <div class="step-detail">Create the organization record in Colleen Admin. This is the container that all properties, settings, and AI products hang off of.</div>
+          <span class="step-tag auto">Automatable</span>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon blue">🔗</div>
+            <div class="step-name">Map to Entrata Client</div>
+          </div>
+          <div class="step-detail">Link the Colleen org to the existing Entrata client record. This is the bridge between the two systems.</div>
+          <span class="step-tag auto">Automatable</span>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon blue">🔐</div>
+            <div class="step-name">Provision Access</div>
+          </div>
+          <div class="step-detail">Set up internal access so implementation teams can configure the account without waiting for contract.</div>
+          <span class="step-tag manual">Requires Decision</span>
+        </div>
+      </div>
+
+      <div class="exit-criteria blue">
+        <div class="exit-label blue">Exit Criteria</div>
+        <div class="exit-text">Colleen org exists, is linked to the Entrata client, and is accessible to the implementation team.</div>
+      </div>
+    </div>
+
+    <!-- Phase 2: Property Creation -->
+    <div class="phase">
+      <div class="phase-dot green"></div>
+      <div class="phase-number">STEP 02</div>
+      <div class="phase-title green">Create All Properties</div>
+      <div class="phase-desc">Populate every property from the client's portfolio into Colleen. This sets up the full structure, even though only one property will be used for verification.</div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon green">📋</div>
+            <div class="step-name">Pull Property List</div>
+          </div>
+          <div class="step-detail">Read the client's full property portfolio from Entrata. Names, addresses, unit counts &mdash; everything needed to create the property records.</div>
+          <span class="step-tag auto">Automatable</span>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon green">🏠</div>
+            <div class="step-name">Create Properties in Colleen</div>
+          </div>
+          <div class="step-detail">Create each property under the org. These are shells &mdash; no settings, no phone numbers, no AI products activated yet.</div>
+          <span class="step-tag auto">Automatable</span>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon green">🔍</div>
+            <div class="step-name">Verify Property Mapping</div>
+          </div>
+          <div class="step-detail">Confirm that every Entrata property has a corresponding Colleen property. Catch any mismatches before proceeding.</div>
+          <span class="step-tag verify">Verification</span>
+        </div>
+      </div>
+
+      <div class="exit-criteria green">
+        <div class="exit-label green">Exit Criteria</div>
+        <div class="exit-text">All client properties exist in Colleen, correctly mapped 1:1 with their Entrata counterparts.</div>
+      </div>
+    </div>
+
+    <!-- Phase 3: Single Property Verification -->
+    <div class="phase">
+      <div class="phase-dot amber"></div>
+      <div class="phase-number">STEP 03</div>
+      <div class="phase-title amber">Register One Phone Number</div>
+      <div class="phase-desc">Pick one property and run it through the full Twilio 10DLC registration process. This is the most time-consuming step and the one most likely to surface blockers.</div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon amber">📱</div>
+            <div class="step-name">Select Verification Property</div>
+          </div>
+          <div class="step-detail">Choose one property to be the test candidate. Does <em>not</em> need to be the first property that goes live &mdash; just one that exercises the full path.</div>
+          <span class="step-tag manual">Requires Decision</span>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon amber">📝</div>
+            <div class="step-name">Twilio Brand Registration</div>
+          </div>
+          <div class="step-detail">Register the client's brand with Twilio. Requires privacy policy on the client website &mdash; this blocks ~40% of clients today.</div>
+          <span class="step-tag blocker">Known Blocker Risk</span>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon amber">📩</div>
+            <div class="step-name">10DLC Campaign Approval</div>
+          </div>
+          <div class="step-detail">Submit the 10DLC campaign for carrier approval. SLA depends on Twilio instance: Entrata's (24 days) vs Colleen's (3 days).</div>
+          <span class="step-tag blocker">SLA Dependency</span>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon amber">✅</div>
+            <div class="step-name">Number Verified</div>
+          </div>
+          <div class="step-detail">The phone number is approved and ready to send/receive SMS. This proves the Twilio registration path works for this client.</div>
+          <span class="step-tag verify">Verification</span>
+        </div>
+      </div>
+
+      <div class="exit-criteria amber">
+        <div class="exit-label amber">Exit Criteria</div>
+        <div class="exit-text">One property has a fully registered, carrier-approved phone number that could send SMS if activated.</div>
+      </div>
+    </div>
+
+    <!-- Phase 4: Default Settings -->
+    <div class="phase">
+      <div class="phase-dot purple"></div>
+      <div class="phase-number">STEP 04</div>
+      <div class="phase-title purple">Apply Default Settings</div>
+      <div class="phase-desc">Configure the verified property with default AI product settings pulled from Entrata. This is where we prove the settings path works &mdash; even if the values will be tuned later.</div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon purple">⚙️</div>
+            <div class="step-name">Pull Entrata Settings</div>
+          </div>
+          <div class="step-detail">Read the property's existing Entrata settings: grace period, late fees, payment block day, emergency phone numbers &mdash; the 8 high/critical-risk settings.</div>
+          <span class="step-tag auto">Automatable</span>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon purple">🔄</div>
+            <div class="step-name">Map &amp; Apply Defaults</div>
+          </div>
+          <div class="step-detail">Translate Entrata settings into Colleen's flat schema. Apply the 19 simple 1:1 mappings. Flag the 9 complex derived values for review.</div>
+          <span class="step-tag manual">Partial Manual</span>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon purple">🛡️</div>
+            <div class="step-name">Validate Critical Settings</div>
+          </div>
+          <div class="step-detail">Confirm the 8 high-risk settings (payment block day, grace period, emergency phone) are correctly populated. These cannot be safely defaulted.</div>
+          <span class="step-tag verify">Verification</span>
+        </div>
+      </div>
+
+      <div class="exit-criteria purple">
+        <div class="exit-label purple">Exit Criteria</div>
+        <div class="exit-text">One property has complete settings. If activated, the AI products would behave correctly for that property.</div>
+      </div>
+    </div>
+
+    <!-- Phase 5: Validation Gate -->
+    <div class="phase">
+      <div class="phase-dot red"></div>
+      <div class="phase-number">STEP 05</div>
+      <div class="phase-title red">End-to-End Validation Gate</div>
+      <div class="phase-desc">Confirm the entire path is clean. The client <em>could</em> go live with this one property, but they won't &mdash; the purpose is to know we have everything needed.</div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon red">🔬</div>
+            <div class="step-name">Checklist Audit</div>
+          </div>
+          <div class="step-detail">Verify: org exists, properties mapped, phone number registered, settings applied, no missing data, no known blockers for remaining properties.</div>
+          <span class="step-tag verify">Verification</span>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon red">📊</div>
+            <div class="step-name">Document Blockers</div>
+          </div>
+          <div class="step-detail">If anything failed &mdash; privacy policy missing, Twilio SLA exceeded, settings can't be mapped &mdash; document it now while there's time to resolve before contract.</div>
+          <span class="step-tag blocker">Blockers Surface Here</span>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-icon red">🚀</div>
+            <div class="step-name">Ready State Confirmed</div>
+          </div>
+          <div class="step-detail">When this gate passes: the client is pre-qualified for fast activation. Post-contract, it's repeat-and-scale &mdash; not start-from-scratch.</div>
+          <span class="step-tag auto">Decision Gate</span>
+        </div>
+      </div>
+
+      <div class="exit-criteria red">
+        <div class="exit-label red">Exit Criteria</div>
+        <div class="exit-text">Full confidence that we have everything needed for go-live. Any blockers are identified and have resolution paths. Post-contract activation is a scaling exercise, not a discovery exercise.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Key Distinction -->
+  <div class="distinction">
+    <div class="distinction-label">Key Distinction</div>
+    <p>The verified property is <em>not</em> the property the client will go live with first. It's a <em>proof-of-path</em>. The goal is to surface every blocker &mdash; missing privacy policies, Twilio SLA delays, unmappable settings &mdash; before the contract is signed, so post-contract implementation is pure execution.</p>
+    <br>
+    <p>Today, these blockers are discovered <em>during</em> implementation, contributing to the 27.6% of implementation calls that involve timeline delays. Front-loading moves discovery before the clock starts.</p>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="summary">
+    <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">What This Changes</h2>
+    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Moving from "discover during implementation" to "verify before contract."</p>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-value blue">5</div>
+        <div class="summary-label">Steps to full verification</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-value green">1</div>
+        <div class="summary-label">Property needed to prove the path</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-value amber">0</div>
+        <div class="summary-label">Surprises post-contract (goal)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>ELI+ Implementation &mdash; Front-Loaded Creation Model &mdash; Cal Harris &mdash; April 2026</p>
+    <p style="margin-top: 4px;">Source: Brandon Bayles meeting notes (Mar 30, 2026), ELI+ Transition Brief, 10,699 Gong call analysis</p>
+  </div>
+
+</div>
+
+</body>
+</html>

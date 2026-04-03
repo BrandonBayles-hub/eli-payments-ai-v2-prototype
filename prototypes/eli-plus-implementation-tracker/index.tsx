@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { usePrototypeControls } from "@sandbox-components/prototype"
 import { Button } from "@sandbox-components/ui/button"
@@ -74,6 +74,8 @@ export default function EliPlusImplementationTracker() {
   }
 
   const clientItemsLeft = data.companyItems.filter((i) => i.visibility !== "internal" && i.status === "needs_input").length
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false)
+  const showWelcome = viewState === "empty" && !welcomeDismissed
 
   return (
     <div className="min-h-screen bg-background">
@@ -139,7 +141,7 @@ export default function EliPlusImplementationTracker() {
         </aside>
 
         <main className="flex-1 p-6 overflow-y-auto">
-          {viewState === "empty" ? (
+          {showWelcome ? (
             <div className="max-w-lg mx-auto flex flex-col items-center justify-center py-20 text-center">
               <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-purple-600 to-pink-500 flex items-center justify-center mb-6">
                 <Zap className="h-7 w-7 text-white" aria-hidden="true" />
@@ -152,7 +154,7 @@ export default function EliPlusImplementationTracker() {
                 A few items need your input before activation. Most clients finish in a single session.
               </p>
               <div className="flex flex-col gap-3 w-full max-w-xs">
-                <Button variant="primary" size="lg" className="w-full" onClick={() => controls.setValue("viewState", "normal")}>
+                <Button variant="primary" size="lg" className="w-full" onClick={() => { setWelcomeDismissed(true); controls.setValue("viewState", "normal"); setTab("checklist") }}>
                   Start Setup
                 </Button>
                 <Button variant="outline" size="lg" className="w-full" onClick={() => window.open("https://support.entrata.com", "_blank")}>

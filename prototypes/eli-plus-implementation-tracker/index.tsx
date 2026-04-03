@@ -201,7 +201,7 @@ export default function EliPlusImplementationTracker() {
                     <TabsTrigger value="settings-map"><Wrench className="h-4 w-4" aria-hidden="true" />Settings Map</TabsTrigger>
                     {role === "internal" && <TabsTrigger value="pipeline"><Shield className="h-4 w-4" aria-hidden="true" />Pipeline</TabsTrigger>}
                   </TabsList>
-                  <TabsContent value="checklist"><ImplementationChecklist items={data.companyItems} role={role} viewState={viewState} /></TabsContent>
+                  <TabsContent value="checklist"><ImplementationChecklist items={data.companyItems} role={role} viewState={viewState} onAllComplete={() => setTab("activation")} /></TabsContent>
                   <TabsContent value="properties">
                     <PropertyReadiness properties={data.properties} role={role} viewState={viewState} selectedPropertyId={propertyId} onSelectProperty={selectProperty} />
                   </TabsContent>

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react"
+import { useState, useRef, useEffect, useCallback, type ReactNode } from "react"
 import { Badge } from "@sandbox-components/ui/badge"
 import { Button } from "@sandbox-components/ui/button"
 import { Input } from "@sandbox-components/ui/input"
@@ -11,7 +11,7 @@ import { PhoneInput } from "@sandbox-components/composite/PhoneInput"
 import { EmptyState } from "@sandbox-components/composite/EmptyState"
 import {
   CheckCircle2, Clock, AlertTriangle, Circle, ShieldCheck, ChevronDown, ChevronRight,
-  AlertCircle, RefreshCw, FolderOpen, ExternalLink,
+  AlertCircle, RefreshCw, ExternalLink, PartyPopper, ArrowRight,
 } from "lucide-react"
 import type { ChecklistItem, ViewRole, ItemCategory, ItemStatus } from "../types"
 import {
@@ -29,7 +29,7 @@ function StatusGlyph({ s }: { s: ItemStatus }) {
   return <C className={cls} aria-hidden />
 }
 
-interface Props { items: ChecklistItem[]; role: ViewRole; viewState: string }
+interface Props { items: ChecklistItem[]; role: ViewRole; viewState: string; onAllComplete?: () => void }
 
 function ClientInputBlock({ item, onComplete }: { item: ChecklistItem; onComplete: () => void }) {
   const id = `cf-${item.id}`
@@ -46,11 +46,8 @@ function ClientInputBlock({ item, onComplete }: { item: ChecklistItem; onComplet
     ) : null
   }
   if (t === "confirm") {
-    return (
-      <Button variant="primary" type="button" className="mt-2" onClick={onComplete}>Mark as Complete</Button>
-    )
+    return <Button variant="primary" type="button" className="mt-2" onClick={onComplete}>Mark as Complete</Button>
   }
-  const go = () => onComplete()
   if (t === "select") {
     return (
       <div className="space-y-2 mt-3">
@@ -64,7 +61,7 @@ function ClientInputBlock({ item, onComplete }: { item: ChecklistItem; onComplet
             })}
           </SelectContent>
         </Select>
-        <Button variant="primary" type="button" onClick={go}>Confirm</Button>
+        <Button variant="primary" type="button" onClick={onComplete}>Confirm</Button>
       </div>
     )
   }
@@ -86,16 +83,31 @@ function ClientInputBlock({ item, onComplete }: { item: ChecklistItem; onComplet
     <div className="space-y-2 mt-3">
       <Label htmlFor={id}>{label}</Label>
       {inner}
-      <Button variant="primary" type="button" onClick={go}>Submit</Button>
+      <Button variant="primary" type="button" onClick={onComplete}>Submit</Button>
     </div>
   ) : null
 }
 
-function ItemRow({ item, role, onDone }: { item: ChecklistItem; role: ViewRole; onDone: (id: string) => void }) {
-  const [ex, setEx] = useState(item.status === "needs_input" || item.status === "blocked")
+function ItemRow({ item, role, onDone, highlighted, justCompleted, itemRef }: {
+  item: ChecklistItem; role: ViewRole; onDone: (id: string) => void
+  highlighted: boolean; justCompleted: boolean; itemRef: (el: HTMLDivElement | null) => void
+}) {
+  const [ex, setEx] = useState(item.status === "needs_input" || item.status === "blocked" || highlighted)
   const st = item.status
+
+  useEffect(() => {
+    if (highlighted && st === "needs_input") setEx(true)
+  }, [highlighted, st])
+
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
+    <div
+      ref={itemRef}
+      className={`border rounded-lg overflow-hidden transition-all duration-500 ${
+        justCompleted ? "border-green-400 bg-green-50/50 ring-2 ring-green-200" :
+        highlighted ? "border-primary ring-2 ring-primary/20" :
+        "border-border"
+      }`}
+    >
       <button type="button" className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/50 transition-colors" onClick={() => setEx(!ex)} aria-expanded={ex}>
         <StatusGlyph s={st} />
         <div className="flex-1 min-w-0">
@@ -144,10 +156,20 @@ function ItemRow({ item, role, onDone }: { item: ChecklistItem; role: ViewRole; 
   )
 }
 
-function Cat({ cat, items, role, onDone }: { cat: ItemCategory; items: ChecklistItem[]; role: ViewRole; onDone: (id: string) => void }) {
+function Cat({ cat, items, role, onDone, focusId, justCompletedId, itemRefs }: {
+  cat: ItemCategory; items: ChecklistItem[]; role: ViewRole; onDone: (id: string) => void
+  focusId: string | null; justCompletedId: string | null
+  itemRefs: React.MutableRefObject<Map<string, HTMLDivElement>>
+}) {
+  const hasFocusItem = items.some((i) => i.id === focusId)
   const [collapsed, setCollapsed] = useState(false)
   const done = items.filter((i) => i.status === "complete" || i.status === "auto_confirmed").length
   const pct = items.length ? Math.round((done / items.length) * 100) : 0
+
+  useEffect(() => {
+    if (hasFocusItem && collapsed) setCollapsed(false)
+  }, [hasFocusItem, collapsed])
+
   return (
     <div className="space-y-2">
       <button type="button" className="flex flex-col gap-2 w-full text-left rounded-lg" onClick={() => setCollapsed(!collapsed)} aria-expanded={!collapsed}>
@@ -165,17 +187,63 @@ function Cat({ cat, items, role, onDone }: { cat: ItemCategory; items: Checklist
       </button>
       {!collapsed && (
         <div className="space-y-2 pl-6">
-          {items.map((it) => <ItemRow key={it.id} item={it} role={role} onDone={onDone} />)}
+          {items.map((it) => (
+            <ItemRow
+              key={it.id}
+              item={it}
+              role={role}
+              onDone={onDone}
+              highlighted={it.id === focusId}
+              justCompleted={it.id === justCompletedId}
+              itemRef={(el) => { if (el) itemRefs.current.set(it.id, el); else itemRefs.current.delete(it.id) }}
+            />
+          ))}
         </div>
       )}
     </div>
   )
 }
 
-export function ImplementationChecklist({ items, role, viewState }: Props) {
+export function ImplementationChecklist({ items, role, viewState, onAllComplete }: Props) {
   const [doneIds, setDoneIds] = useState<Set<string>>(() => new Set())
-  const mark = (id: string) => setDoneIds((p) => new Set(p).add(id))
-  const resolve = (i: ChecklistItem) => (doneIds.has(i.id) ? { ...i, status: "complete" as const } : i)
+  const [justCompletedId, setJustCompletedId] = useState<string | null>(null)
+  const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+
+  const resolve = useCallback((i: ChecklistItem): ChecklistItem =>
+    doneIds.has(i.id) ? { ...i, status: "complete" as const } : i, [doneIds])
+
+  const vis = items.map(resolve).filter((item) =>
+    role === "client" ? item.visibility === "client" || item.visibility === "both" : true)
+
+  const needsInput = vis.filter((i) => i.status === "needs_input")
+  const totalClient = vis.filter((i) => i.visibility !== "internal").length
+  const doneClient = vis.filter((i) => i.visibility !== "internal" && (i.status === "complete" || i.status === "auto_confirmed")).length
+  const allClientDone = totalClient > 0 && doneClient === totalClient
+  const pctClient = totalClient > 0 ? Math.round((doneClient / totalClient) * 100) : 0
+  const focusId = needsInput.length > 0 ? needsInput[0].id : null
+
+  const mark = useCallback((id: string) => {
+    setDoneIds((p) => new Set(p).add(id))
+    setJustCompletedId(id)
+    setTimeout(() => setJustCompletedId(null), 1500)
+
+    setTimeout(() => {
+      const updated = items.map((i) => doneIds.has(i.id) || i.id === id ? { ...i, status: "complete" as const } : i)
+        .filter((i) => role === "client" ? i.visibility !== "internal" : true)
+      const next = updated.find((i) => i.status === "needs_input")
+      if (next) {
+        const el = itemRefs.current.get(next.id)
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" })
+      }
+    }, 600)
+  }, [items, doneIds, role])
+
+  useEffect(() => {
+    if (allClientDone && onAllComplete) {
+      const t = setTimeout(onAllComplete, 2000)
+      return () => clearTimeout(t)
+    }
+  }, [allClientDone, onAllComplete])
 
   if (viewState === "loading") {
     return (
@@ -198,21 +266,65 @@ export function ImplementationChecklist({ items, role, viewState }: Props) {
       </div>
     )
   }
-  const vis = items.map(resolve).filter((item) => (role === "client" ? item.visibility === "client" || item.visibility === "both" : true))
   if (viewState === "empty" || vis.length === 0) {
     return (
       <EmptyState
         icon={CheckCircle2}
         title="Your checklist is being prepared"
-        description="We're scanning your Entrata settings to pre-fill as much as possible — company address, office hours, property policies, pet and parking rules, financial settings, and more. In a moment, you'll see a checklist showing what's already confirmed and the few items that need your input. Most clients only need to provide an EIN, emergency contact numbers, and confirm a handful of settings."
+        description="We're scanning your Entrata settings to pre-fill as much as possible. In a moment you'll see what's confirmed and what needs your input."
         action={<Button variant="primary" onClick={() => window.location.reload()}>Refresh</Button>}
       />
     )
   }
+
+  if (allClientDone) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-6">
+          <PartyPopper className="h-8 w-8 text-green-600" aria-hidden />
+        </div>
+        <h3 className="text-2xl font-bold mb-2">You're all set!</h3>
+        <p className="text-muted-foreground max-w-md mb-6">
+          Every item has been completed. We're finishing the backend setup — carrier registration, settings sync, and email provisioning. Head to the Go Live tab to activate ELI+ when everything is ready.
+        </p>
+        <Button variant="primary" onClick={onAllComplete}>
+          Go to Activation
+          <ArrowRight className="h-4 w-4" aria-hidden />
+        </Button>
+      </div>
+    )
+  }
+
   const groups = CATEGORY_ORDER.map((c) => ({ cat: c, items: vis.filter((i) => i.category === c) })).filter((g) => g.items.length > 0)
+
   return (
     <div className="space-y-6">
-      {groups.map(({ cat, items: list }) => <Cat key={cat} cat={cat} items={list} role={role} onDone={mark} />)}
+      <div className="sticky top-0 z-10 bg-card border border-border rounded-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 shadow-sm">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <span className="text-sm font-semibold">{doneClient} of {totalClient} items complete</span>
+            <span className="text-sm font-medium tabular-nums">{pctClient}%</span>
+          </div>
+          <Progress value={pctClient} className="h-2" />
+        </div>
+        {focusId && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const el = itemRefs.current.get(focusId)
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "center" })
+            }}
+          >
+            Next: {needsInput[0]?.label?.split(" ").slice(0, 3).join(" ")}...
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Button>
+        )}
+      </div>
+
+      {groups.map(({ cat, items: list }) => (
+        <Cat key={cat} cat={cat} items={list} role={role} onDone={mark} focusId={focusId} justCompletedId={justCompletedId} itemRefs={itemRefs} />
+      ))}
     </div>
   )
 }

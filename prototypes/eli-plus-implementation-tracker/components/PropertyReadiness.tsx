@@ -101,9 +101,9 @@ export function PropertyReadiness({
     return (
       <EmptyState
         icon={Building2}
-        title="Your properties will appear here automatically"
-        description="Once ELI+ is contracted, we pull your full property list from Entrata — names, addresses, unit counts, and existing settings. Each property will show its readiness status across SMS, voice, email, and chat channels so you can track exactly which are ready to go live."
-        action={<Button variant="primary">Learn About ELI+</Button>}
+        title="Loading your properties from Entrata"
+        description="We're pulling your property list, addresses, unit counts, and existing settings. Each property will show its readiness across SMS, voice, email, and chat — so you can see exactly which are ready to go live and which need attention. This usually takes less than a minute."
+        action={<Button variant="primary">Refresh</Button>}
       />
     )
   }

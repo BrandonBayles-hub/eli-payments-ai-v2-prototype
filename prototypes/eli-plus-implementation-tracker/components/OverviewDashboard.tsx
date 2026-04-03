@@ -78,9 +78,9 @@ export function OverviewDashboard({ data, role, viewState, onNavigateToProperty 
     return (
       <EmptyState
         icon={Zap}
-        title="ELI+ is not yet contracted for this company"
-        description="Once ELI+ products are added to your contract, we'll automatically scan your Entrata settings and begin building your implementation checklist. Most of your property data — addresses, office hours, policies, and financial settings — will be pulled in automatically."
-        action={<Button variant="primary">Learn About ELI+</Button>}
+        title="Welcome to ELI+ — let's get you set up"
+        description="We've already pulled your property data from Entrata — addresses, office hours, policies, and financial settings are pre-filled. A few items need your input before we can activate. Head to the checklist to review what's ready and provide what's missing. Most clients complete setup in a single session."
+        action={<Button variant="primary">Start Setup</Button>}
       />
     )
   }

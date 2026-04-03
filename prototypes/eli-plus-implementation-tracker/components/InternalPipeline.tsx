@@ -172,7 +172,7 @@ export function InternalPipeline({ items, viewState }: InternalPipelineProps) {
   }
 
   if (viewState === "empty") {
-    return <EmptyState icon={Shield} title="No active implementation pipeline" description="When a client is contracted for ELI+, this view shows the 3-engine pipeline: Plumbing (Twilio, shells, email), Agent Studio (settings, defaults, sync), and Full Rollout (activation, safety gates, metrics). Each engine has per-step status, owner attribution, and dependency tracking." />
+    return <EmptyState icon={Shield} title="Pipeline initializing" description="This client is contracted but the backend plumbing hasn't started yet. Shell creation, API credential setup, and Twilio registration will begin automatically. Once Engine 1 (Plumbing) kicks off, you'll see per-step status, owner attribution, and dependency tracking across all three engines." />
   }
 
   return (

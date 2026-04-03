@@ -105,8 +105,9 @@ export function AgentActivation({ data, role, viewState }: AgentActivationProps)
   }
   if (viewState === "empty") {
     return (
-      <EmptyState icon={Rocket} title="ELI+ activation will appear here when you're ready"
-        description="Once your implementation checklist is complete and all properties are staged, this page will show your activation controls. We'll verify that carrier registration is approved, settings are synced, emergency contacts are confirmed, and every property has the channels it needs. When everything checks out, you'll see a single button to go live." />
+      <EmptyState icon={Rocket} title="Complete your checklist to unlock activation"
+        description="Once you've provided the required items — your EIN, emergency contact numbers, and a few confirmations — we handle the rest. Carrier registration, settings sync, email provisioning, and IVR setup all happen automatically. When everything checks out, you'll see a single button to take ELI+ live across all your properties."
+        action={<Button variant="primary">Go to Checklist</Button>} />
     )
   }
   if (st === "trial_expired") {

@@ -203,9 +203,9 @@ export function ImplementationChecklist({ items, role, viewState }: Props) {
     return (
       <EmptyState
         icon={CheckCircle2}
-        title="No ELI+ products contracted yet"
-        description="When ELI+ is added to your contract, this checklist will show exactly what we need from you to get started. We'll pre-fill everything we can from your existing Entrata settings — company address, office hours, property policies, and financial configuration. You'll only need to provide a few items we can't pull automatically, like your EIN and emergency contact numbers."
-        action={<Button variant="primary">Talk to Your Account Manager</Button>}
+        title="Your checklist is being prepared"
+        description="We're scanning your Entrata settings to pre-fill as much as possible — company address, office hours, property policies, pet and parking rules, financial settings, and more. In a moment, you'll see a checklist showing what's already confirmed and the few items that need your input. Most clients only need to provide an EIN, emergency contact numbers, and confirm a handful of settings."
+        action={<Button variant="primary">Refresh</Button>}
       />
     )
   }

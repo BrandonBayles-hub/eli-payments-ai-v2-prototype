@@ -99,7 +99,7 @@ export function SettingsIntelligence({ viewState }: SettingsIntelligenceProps) {
 
   if (viewState === "empty") {
     return (
-      <EmptyState icon={Database} title="Settings map is being built" description="This map will show every configuration field ELI+ needs, where it lives in Entrata, and whether it can be auto-populated. Once populated, you'll see which settings already pull from your existing Entrata data, which are ELI+ specific, and which still need investigation. The goal: minimize what the client has to provide by using what Entrata already knows." />
+      <EmptyState icon={Database} title="Scanning your Entrata settings" description="We're mapping your existing Entrata configuration to ELI+ requirements. You'll see which fields are already populated from your setup — office hours, policies, financial settings, property details — and the few that need your input. Most settings auto-fill from data you've already configured in Entrata." />
     )
   }
 

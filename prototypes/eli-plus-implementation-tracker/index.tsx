@@ -139,41 +139,79 @@ export default function EliPlusImplementationTracker() {
         </aside>
 
         <main className="flex-1 p-6 overflow-y-auto">
-          <div className="max-w-7xl mx-auto space-y-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-semibold text-foreground">
-                  {role === "client" ? "ELI+ Setup" : `ELI+ Setup — ${data.companyName}`}
-                </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {role === "client"
-                    ? `Get ELI+ live across your ${data.propertiesTotal} properties. Complete the items below and activate when ready.`
-                    : `Implementation pipeline for ${data.companyName} (${data.companyId}) — ${data.segment === "backfill" ? "backfill" : "new"} client.`}
-                </p>
+          {viewState === "empty" ? (
+            <div className="max-w-lg mx-auto flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-purple-600 to-pink-500 flex items-center justify-center mb-6">
+                <Zap className="h-7 w-7 text-white" aria-hidden="true" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-3">Welcome to ELI+ Setup</h2>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                We've scanned your Entrata account and pre-filled what we can — property addresses, office hours, policies, and financial settings are ready to go.
+              </p>
+              <p className="text-muted-foreground leading-relaxed mb-8">
+                A few items need your input before activation. Most clients finish in a single session.
+              </p>
+              <div className="flex flex-col gap-3 w-full max-w-xs">
+                <Button variant="primary" size="lg" className="w-full" onClick={() => controls.setValue("viewState", "normal")}>
+                  Start Setup
+                </Button>
+                <Button variant="outline" size="lg" className="w-full" onClick={() => window.open("https://support.entrata.com", "_blank")}>
+                  <Headphones className="h-4 w-4" aria-hidden="true" />
+                  Talk to Support First
+                </Button>
+              </div>
+              <div className="mt-12 grid grid-cols-3 gap-6 w-full max-w-md">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-foreground">{data.propertiesTotal}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Properties detected</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-foreground">4</p>
+                  <p className="text-xs text-muted-foreground mt-1">AI products included</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-foreground">~15 min</p>
+                  <p className="text-xs text-muted-foreground mt-1">Typical setup time</p>
+                </div>
               </div>
             </div>
+          ) : (
+            <div className="max-w-7xl mx-auto space-y-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-semibold text-foreground">
+                    {role === "client" ? "ELI+ Setup" : `ELI+ Setup — ${data.companyName}`}
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {role === "client"
+                      ? `Get ELI+ live across your ${data.propertiesTotal} properties. Complete the items below and activate when ready.`
+                      : `Implementation pipeline for ${data.companyName} (${data.companyId}) — ${data.segment === "backfill" ? "backfill" : "new"} client.`}
+                  </p>
+                </div>
+              </div>
 
-            <OverviewDashboard data={data} role={role} viewState={viewState} onNavigateToProperty={() => setTab("properties")} onStartSetup={() => setTab("checklist")} />
+              <OverviewDashboard data={data} role={role} viewState={viewState} onNavigateToProperty={() => setTab("properties")} onStartSetup={() => setTab("checklist")} />
 
-            <TabsProvider variant="subtab">
-              <Tabs value={activeTab} onValueChange={setTab}>
-                <TabsList>
-                  <TabsTrigger value="checklist"><LayoutDashboard className="h-4 w-4" aria-hidden="true" />{role === "client" ? "What We Need" : "Checklist"}</TabsTrigger>
-                  <TabsTrigger value="properties"><Building2 className="h-4 w-4" aria-hidden="true" />Properties</TabsTrigger>
-                  <TabsTrigger value="activation"><Rocket className="h-4 w-4" aria-hidden="true" />{role === "client" ? "Go Live" : "Activation"}</TabsTrigger>
-                  <TabsTrigger value="settings-map"><Wrench className="h-4 w-4" aria-hidden="true" />Settings Map</TabsTrigger>
-                  {role === "internal" && <TabsTrigger value="pipeline"><Shield className="h-4 w-4" aria-hidden="true" />Pipeline</TabsTrigger>}
-                </TabsList>
-                <TabsContent value="checklist"><ImplementationChecklist items={data.companyItems} role={role} viewState={viewState} /></TabsContent>
-                <TabsContent value="properties">
-                  <PropertyReadiness properties={data.properties} role={role} viewState={viewState} selectedPropertyId={propertyId} onSelectProperty={selectProperty} />
-                </TabsContent>
-                <TabsContent value="activation"><AgentActivation data={data} role={role} viewState={viewState} onGoToChecklist={() => setTab("checklist")} /></TabsContent>
-                <TabsContent value="settings-map"><SettingsIntelligence viewState={viewState} /></TabsContent>
-                {role === "internal" && <TabsContent value="pipeline"><InternalPipeline items={data.companyItems} viewState={viewState} /></TabsContent>}
-              </Tabs>
-            </TabsProvider>
-          </div>
+              <TabsProvider variant="subtab">
+                <Tabs value={activeTab} onValueChange={setTab}>
+                  <TabsList>
+                    <TabsTrigger value="checklist"><LayoutDashboard className="h-4 w-4" aria-hidden="true" />{role === "client" ? "What We Need" : "Checklist"}</TabsTrigger>
+                    <TabsTrigger value="properties"><Building2 className="h-4 w-4" aria-hidden="true" />Properties</TabsTrigger>
+                    <TabsTrigger value="activation"><Rocket className="h-4 w-4" aria-hidden="true" />{role === "client" ? "Go Live" : "Activation"}</TabsTrigger>
+                    <TabsTrigger value="settings-map"><Wrench className="h-4 w-4" aria-hidden="true" />Settings Map</TabsTrigger>
+                    {role === "internal" && <TabsTrigger value="pipeline"><Shield className="h-4 w-4" aria-hidden="true" />Pipeline</TabsTrigger>}
+                  </TabsList>
+                  <TabsContent value="checklist"><ImplementationChecklist items={data.companyItems} role={role} viewState={viewState} /></TabsContent>
+                  <TabsContent value="properties">
+                    <PropertyReadiness properties={data.properties} role={role} viewState={viewState} selectedPropertyId={propertyId} onSelectProperty={selectProperty} />
+                  </TabsContent>
+                  <TabsContent value="activation"><AgentActivation data={data} role={role} viewState={viewState} onGoToChecklist={() => setTab("checklist")} /></TabsContent>
+                  <TabsContent value="settings-map"><SettingsIntelligence viewState={viewState} /></TabsContent>
+                  {role === "internal" && <TabsContent value="pipeline"><InternalPipeline items={data.companyItems} viewState={viewState} /></TabsContent>}
+                </Tabs>
+              </TabsProvider>
+            </div>
+          )}
         </main>
       </div>
     </div>

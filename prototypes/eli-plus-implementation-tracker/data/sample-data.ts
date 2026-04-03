@@ -627,23 +627,20 @@ export const newClientImplementation: CompanyImplementation = buildCompany(
 )
 
 // Fresh start: just contracted, Entrata scan complete, nothing submitted yet
-const freshProperties: PropertyReadinessEntry[] = Array.from({ length: 112 }, (_, i) => ({
-  id: `prop-${i + 1}`,
-  name: PROPERTY_NAMES[i % PROPERTY_NAMES.length],
-  address: `${1000 + i * 37} ${pick(STREETS, 50_000 + i * 2)}, ${pick(CITIES, 50_000 + i * 2 + 1)}`,
-  units: Math.floor(80 + (Math.sin(77 + i * 127.1) * 43758.5453 - Math.floor(Math.sin(77 + i * 127.1) * 43758.5453)) * 320),
+const freshProperties = generateProperties(112, 77, CONTRACTED_ALL).map((p) => ({
+  ...p,
   smsStatus: "not_started" as ChannelStatus,
   voiceStatus: "not_started" as ChannelStatus,
   emailStatus: "not_started" as ChannelStatus,
   chatStatus: "not_started" as ChannelStatus,
   emergencyContact: false,
+  emergencyPhone: undefined,
   settingsComplete: false,
   shellCreated: false,
   twilioStatus: "not_started" as TwilioPropertyStatus,
   ivrStatus: "not_started" as ChannelStatus,
   overallReady: false,
   blockers: ["Setup not started"],
-  contractedProducts: [...CONTRACTED_ALL],
   leasingReady: false,
   paymentsReady: false,
   renewalsReady: false,

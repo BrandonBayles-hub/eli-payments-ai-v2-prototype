@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react"
-import { ArrowRight, AlertCircle, AlertTriangle, CheckCircle2, Circle, Clock, FolderOpen, Lock, RefreshCw } from "lucide-react"
+import { ArrowRight, AlertCircle, AlertTriangle, CheckCircle2, Circle, Clock, FolderOpen, Lock, RefreshCw, Shield } from "lucide-react"
 import { Badge } from "@sandbox-components/ui/badge"
 import { Button } from "@sandbox-components/ui/button"
 import { Progress } from "@sandbox-components/ui/progress"
@@ -172,7 +172,7 @@ export function InternalPipeline({ items, viewState }: InternalPipelineProps) {
   }
 
   if (viewState === "empty") {
-    return <EmptyState icon={FolderOpen} title="No pipeline data" description="Pipeline steps will appear once ELI+ implementation begins." />
+    return <EmptyState icon={Shield} title="No active implementation pipeline" description="When a client is contracted for ELI+, this view shows the 3-engine pipeline: Plumbing (Twilio, shells, email), Agent Studio (settings, defaults, sync), and Full Rollout (activation, safety gates, metrics). Each engine has per-step status, owner attribution, and dependency tracking." />
   }
 
   return (

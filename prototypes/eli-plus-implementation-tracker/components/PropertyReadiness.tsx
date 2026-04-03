@@ -13,7 +13,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@sandbox-components/ui/table"
 import {
   CheckCircle2, Clock, XCircle, AlertCircle, RefreshCw, FolderOpen, ChevronLeft, ChevronRight,
-  AlertTriangle, MessageSquare, Mail, Smartphone, Phone,
+  AlertTriangle, MessageSquare, Mail, Smartphone, Phone, Building2,
 } from "lucide-react"
 import { cn } from "@sandbox-lib/utils"
 import type { EliProduct, PropertyReadinessEntry, ChannelStatus, ViewRole, TwilioPropertyStatus } from "../types"
@@ -100,9 +100,10 @@ export function PropertyReadiness({
   if (viewState === "empty" || properties.length === 0) {
     return (
       <EmptyState
-        icon={FolderOpen}
-        title="No properties found"
-        description="Properties will appear here once they are associated with your ELI+ implementation."
+        icon={Building2}
+        title="Your properties will appear here automatically"
+        description="Once ELI+ is contracted, we pull your full property list from Entrata — names, addresses, unit counts, and existing settings. Each property will show its readiness status across SMS, voice, email, and chat channels so you can track exactly which are ready to go live."
+        action={<Button variant="primary">Learn About ELI+</Button>}
       />
     )
   }

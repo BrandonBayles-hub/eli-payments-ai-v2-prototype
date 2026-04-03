@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@sandbox-components/ui
 import { EliGradientBorder } from "@sandbox-components/ui/eli-gradient-border"
 import { EmptyState } from "@sandbox-components/composite/EmptyState"
 import { ConfirmDialog } from "@sandbox-components/composite/ConfirmDialog"
-import { AlertCircle, CheckCircle2, RefreshCw, FolderOpen, Plus } from "lucide-react"
+import { AlertCircle, CheckCircle2, RefreshCw, Rocket } from "lucide-react"
 import type { CompanyImplementation, EliProduct, ItemStatus, ViewRole } from "../types"
 import { PRODUCT_LABELS, STATUS_LABELS } from "../types"
 
@@ -105,8 +105,8 @@ export function AgentActivation({ data, role, viewState }: AgentActivationProps)
   }
   if (viewState === "empty") {
     return (
-      <EmptyState icon={FolderOpen} title="No activation data" description="Implementation details will appear here once your workspace is configured."
-        action={<Button variant="primary"><Plus className="h-4 w-4" />Get started</Button>} />
+      <EmptyState icon={Rocket} title="ELI+ activation will appear here when you're ready"
+        description="Once your implementation checklist is complete and all properties are staged, this page will show your activation controls. We'll verify that carrier registration is approved, settings are synced, emergency contacts are confirmed, and every property has the channels it needs. When everything checks out, you'll see a single button to go live." />
     )
   }
   if (st === "trial_expired") {

@@ -70,9 +70,10 @@ export function SettingsIntelligence({ viewState }: SettingsIntelligenceProps) {
     const eliOnly = settingsMap.filter((s) => s.mappingStatus === "eli_only").length
     const unknown = settingsMap.filter((s) => s.mappingStatus === "unknown").length
     const autoPopulable = settingsMap.filter((s) => s.canAutoPopulate).length
+    const pullsFromEntrata = settingsMap.filter((s) => s.pullsFromEntrata).length
     const clientInput = settingsMap.filter((s) => s.requiresClientInput).length
     const critical = settingsMap.filter((s) => s.risk === "critical").length
-    return { total, mapped, derivable, eliOnly, unknown, autoPopulable, clientInput, critical }
+    return { total, mapped, derivable, eliOnly, unknown, autoPopulable, pullsFromEntrata, clientInput, critical }
   }, [])
 
   if (viewState === "loading") {
@@ -120,12 +121,12 @@ export function SettingsIntelligence({ viewState }: SettingsIntelligenceProps) {
           <p className="text-xs text-muted-foreground">Mapped / Derivable</p>
         </div>
         <div className="bg-muted rounded-lg p-3 text-center">
-          <p className="text-2xl font-bold">{stats.autoPopulable}</p>
-          <p className="text-xs text-muted-foreground">Can Auto-Populate</p>
+          <p className="text-2xl font-bold">{stats.pullsFromEntrata}</p>
+          <p className="text-xs text-muted-foreground">Pull from Entrata</p>
         </div>
         <div className="bg-muted rounded-lg p-3 text-center">
-          <p className="text-2xl font-bold text-amber-600">{stats.unknown}</p>
-          <p className="text-xs text-muted-foreground">Needs Investigation</p>
+          <p className="text-2xl font-bold text-amber-600">{stats.clientInput}</p>
+          <p className="text-xs text-muted-foreground">Need Client Input</p>
         </div>
       </div>
 
@@ -208,10 +209,16 @@ export function SettingsIntelligence({ viewState }: SettingsIntelligenceProps) {
                         {isExpanded && (
                           <div className="mt-2 space-y-2 text-xs">
                             {setting.colleenField && (
-                              <p><span className="text-muted-foreground">Colleen field:</span> {setting.colleenField}</p>
+                              <p><span className="text-muted-foreground">Colleen Admin:</span> {setting.colleenField}</p>
                             )}
                             {setting.entrataPath && (
                               <p><span className="text-muted-foreground">Entrata path:</span> {setting.entrataPath}</p>
+                            )}
+                            {setting.onboardingFormRef && (
+                              <p><span className="text-muted-foreground">Onboarding form:</span> {setting.onboardingFormRef}</p>
+                            )}
+                            {setting.pullsFromEntrata && (
+                              <p className="text-green-700">Pulls from Entrata automatically</p>
                             )}
                             {setting.defaultValue && (
                               <p><span className="text-muted-foreground">Default:</span> {setting.defaultValue}</p>

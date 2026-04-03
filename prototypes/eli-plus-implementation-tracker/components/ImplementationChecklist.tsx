@@ -11,9 +11,10 @@ import { PhoneInput } from "@sandbox-components/composite/PhoneInput"
 import { EmptyState } from "@sandbox-components/composite/EmptyState"
 import {
   CheckCircle2, Clock, AlertTriangle, Circle, ShieldCheck, ChevronDown, ChevronRight,
-  AlertCircle, RefreshCw, ExternalLink, PartyPopper, ArrowRight,
+  AlertCircle, RefreshCw, ExternalLink, PartyPopper, ArrowRight, Rocket,
 } from "lucide-react"
-import type { ChecklistItem, ViewRole, ItemCategory, ItemStatus } from "../types"
+import { AgentActivation } from "./AgentActivation"
+import type { ChecklistItem, CompanyImplementation, ViewRole, ItemCategory, ItemStatus } from "../types"
 import {
   CATEGORY_LABELS, CATEGORY_ORDER, CATEGORY_DESCRIPTIONS, PRODUCT_LABELS, STATUS_LABELS,
 } from "../types"
@@ -29,7 +30,7 @@ function StatusGlyph({ s }: { s: ItemStatus }) {
   return <C className={cls} aria-hidden />
 }
 
-interface Props { items: ChecklistItem[]; role: ViewRole; viewState: string; onAllComplete?: () => void }
+interface Props { items: ChecklistItem[]; role: ViewRole; viewState: string; onAllComplete?: () => void; data?: CompanyImplementation }
 
 function ClientInputBlock({ item, onComplete }: { item: ChecklistItem; onComplete: () => void }) {
   const id = `cf-${item.id}`
@@ -204,7 +205,7 @@ function Cat({ cat, items, role, onDone, focusId, justCompletedId, itemRefs }: {
   )
 }
 
-export function ImplementationChecklist({ items, role, viewState, onAllComplete }: Props) {
+export function ImplementationChecklist({ items, role, viewState, onAllComplete, data }: Props) {
   const [doneIds, setDoneIds] = useState<Set<string>>(() => new Set())
   const [justCompletedId, setJustCompletedId] = useState<string | null>(null)
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map())
@@ -277,54 +278,61 @@ export function ImplementationChecklist({ items, role, viewState, onAllComplete 
     )
   }
 
-  if (allClientDone) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-6">
-          <PartyPopper className="h-8 w-8 text-green-600" aria-hidden />
-        </div>
-        <h3 className="text-2xl font-bold mb-2">You're all set!</h3>
-        <p className="text-muted-foreground max-w-md mb-6">
-          Every item has been completed. We're finishing the backend setup — carrier registration, settings sync, and email provisioning. Head to the Go Live tab to activate ELI+ when everything is ready.
-        </p>
-        <Button variant="primary" onClick={onAllComplete}>
-          Go to Activation
-          <ArrowRight className="h-4 w-4" aria-hidden />
-        </Button>
-      </div>
-    )
-  }
-
   const groups = CATEGORY_ORDER.map((c) => ({ cat: c, items: vis.filter((i) => i.category === c) })).filter((g) => g.items.length > 0)
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-0 z-10 bg-card border border-border rounded-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 shadow-sm">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <span className="text-sm font-semibold">{doneClient} of {totalClient} items complete</span>
-            <span className="text-sm font-medium tabular-nums">{pctClient}%</span>
+      {!allClientDone && (
+        <div className="sticky top-0 z-10 bg-card border border-border rounded-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 shadow-sm">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <span className="text-sm font-semibold">{doneClient} of {totalClient} items complete</span>
+              <span className="text-sm font-medium tabular-nums">{pctClient}%</span>
+            </div>
+            <Progress value={pctClient} className="h-2" />
           </div>
-          <Progress value={pctClient} className="h-2" />
+          {focusId && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const el = itemRefs.current.get(focusId)
+                if (el) el.scrollIntoView({ behavior: "smooth", block: "center" })
+              }}
+            >
+              Next: {needsInput[0]?.label?.split(" ").slice(0, 3).join(" ")}...
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Button>
+          )}
         </div>
-        {focusId && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const el = itemRefs.current.get(focusId)
-              if (el) el.scrollIntoView({ behavior: "smooth", block: "center" })
-            }}
-          >
-            Next: {needsInput[0]?.label?.split(" ").slice(0, 3).join(" ")}...
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </Button>
-        )}
-      </div>
+      )}
+
+      {allClientDone && (
+        <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+          <PartyPopper className="h-5 w-5 text-green-600 shrink-0" aria-hidden />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-green-800">All items complete</p>
+            <p className="text-xs text-green-700">Everything you need to provide is done. Review the activation status below.</p>
+          </div>
+        </div>
+      )}
 
       {groups.map(({ cat, items: list }) => (
         <Cat key={cat} cat={cat} items={list} role={role} onDone={mark} focusId={focusId} justCompletedId={justCompletedId} itemRefs={itemRefs} />
       ))}
+
+      {role === "client" && data && (
+        <div className="border-t border-border pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Rocket className="h-5 w-5 text-foreground" aria-hidden />
+            <h3 className="text-lg font-semibold">Activation</h3>
+          </div>
+          <AgentActivation data={data} role={role} viewState={viewState} onGoToChecklist={() => {
+            const el = itemRefs.current.values().next().value
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "center" })
+          }} />
+        </div>
+      )}
     </div>
   )
 }

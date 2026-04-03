@@ -69,11 +69,11 @@ export default function EliPlusImplementationTracker() {
 
   const propertyId = searchParams.get("property")
   const validTabs = useMemo(() => {
-    const base = new Set(["checklist", "properties", "activation"])
-    if (role === "internal") { base.add("settings-map"); base.add("pipeline") }
+    const base = new Set(["setup", "properties"])
+    if (role === "internal") { base.add("activation"); base.add("settings-map"); base.add("pipeline") }
     return base
   }, [role])
-  const tabParam = searchParams.get("tab") ?? "checklist"
+  const tabParam = searchParams.get("tab") ?? "setup"
   const tabFromUrl = validTabs.has(tabParam) ? tabParam : "checklist"
   const activeTab = propertyId ? "properties" : tabFromUrl
 
@@ -92,7 +92,7 @@ export default function EliPlusImplementationTracker() {
 
   const startSetup = () => {
     setSetupStarted(true)
-    setTab("checklist")
+    setTab("setup")
   }
 
   return (
@@ -215,17 +215,17 @@ export default function EliPlusImplementationTracker() {
               <TabsProvider variant="subtab">
                 <Tabs value={activeTab} onValueChange={setTab}>
                   <TabsList>
-                    <TabsTrigger value="checklist"><LayoutDashboard className="h-4 w-4" aria-hidden="true" />{role === "client" ? "What We Need" : "Checklist"}</TabsTrigger>
+                    <TabsTrigger value="setup"><Zap className="h-4 w-4" aria-hidden="true" />Setup</TabsTrigger>
                     <TabsTrigger value="properties"><Building2 className="h-4 w-4" aria-hidden="true" />Properties</TabsTrigger>
-                    <TabsTrigger value="activation"><Rocket className="h-4 w-4" aria-hidden="true" />{role === "client" ? "Go Live" : "Activation"}</TabsTrigger>
-                  {role === "internal" && <TabsTrigger value="settings-map"><Wrench className="h-4 w-4" aria-hidden="true" />Settings Map</TabsTrigger>}
-                  {role === "internal" && <TabsTrigger value="pipeline"><Shield className="h-4 w-4" aria-hidden="true" />Pipeline</TabsTrigger>}
+                    {role === "internal" && <TabsTrigger value="activation"><Rocket className="h-4 w-4" aria-hidden="true" />Activation</TabsTrigger>}
+                    {role === "internal" && <TabsTrigger value="settings-map"><Wrench className="h-4 w-4" aria-hidden="true" />Settings Map</TabsTrigger>}
+                    {role === "internal" && <TabsTrigger value="pipeline"><Shield className="h-4 w-4" aria-hidden="true" />Pipeline</TabsTrigger>}
                   </TabsList>
-                  <TabsContent value="checklist"><ImplementationChecklist items={data.companyItems} role={role} viewState={effectiveViewState} onAllComplete={() => setTab("activation")} /></TabsContent>
+                  <TabsContent value="setup"><ImplementationChecklist items={data.companyItems} role={role} viewState={effectiveViewState} data={data} /></TabsContent>
                   <TabsContent value="properties">
                     <PropertyReadiness properties={data.properties} role={role} viewState={effectiveViewState} selectedPropertyId={propertyId} onSelectProperty={selectProperty} />
                   </TabsContent>
-                  <TabsContent value="activation"><AgentActivation data={data} role={role} viewState={effectiveViewState} onGoToChecklist={() => setTab("checklist")} /></TabsContent>
+                  {role === "internal" && <TabsContent value="activation"><AgentActivation data={data} role={role} viewState={effectiveViewState} onGoToChecklist={() => setTab("setup")} /></TabsContent>}
                   {role === "internal" && <TabsContent value="settings-map"><SettingsIntelligence viewState={effectiveViewState} /></TabsContent>}
                   {role === "internal" && <TabsContent value="pipeline"><InternalPipeline items={data.companyItems} viewState={effectiveViewState} /></TabsContent>}
                 </Tabs>

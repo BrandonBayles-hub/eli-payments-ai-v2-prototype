@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { useSearchParams } from "react-router-dom"
 import { usePrototypeControls } from "@sandbox-components/prototype"
 import { Button } from "@sandbox-components/ui/button"
@@ -41,8 +41,11 @@ export default function EliPlusImplementationTracker() {
         { value: "new", label: "New Implementation" }, { value: "backfill", label: "Backfill (Pre-Oct 2025)" },
       ]},
       { key: "viewState", label: "Simulate State", defaultValue: "normal", options: [
-        { value: "normal", label: "Normal" }, { value: "loading", label: "Loading" },
-        { value: "error", label: "Error" }, { value: "empty", label: "Empty" },
+        { value: "normal", label: "In Progress" },
+        { value: "first-visit", label: "First Visit" },
+        { value: "loading", label: "Loading" },
+        { value: "error", label: "Error" },
+        { value: "empty", label: "Empty" },
       ]},
     ],
   })
@@ -51,6 +54,15 @@ export default function EliPlusImplementationTracker() {
   const segment = controls.value("segment") as ClientSegment
   const viewState = controls.value("viewState")
   const data = segment === "new" ? newClientImplementation : backfillImplementation
+
+  const [setupStarted, setSetupStarted] = useState(false)
+
+  useEffect(() => {
+    if (viewState === "first-visit") setSetupStarted(false)
+  }, [viewState])
+
+  const showWelcome = viewState === "first-visit" && !setupStarted
+  const effectiveViewState = viewState === "first-visit" ? "normal" : viewState
 
   const propertyId = searchParams.get("property")
   const validTabs = useMemo(() => {
@@ -74,8 +86,11 @@ export default function EliPlusImplementationTracker() {
   }
 
   const clientItemsLeft = data.companyItems.filter((i) => i.visibility !== "internal" && i.status === "needs_input").length
-  const [welcomeDismissed, setWelcomeDismissed] = useState(false)
-  const showWelcome = viewState === "empty" && !welcomeDismissed
+
+  const startSetup = () => {
+    setSetupStarted(true)
+    setTab("checklist")
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -129,7 +144,7 @@ export default function EliPlusImplementationTracker() {
                     <span>{item.label}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    {item.id === "eli-setup" && clientItemsLeft > 0 && (
+                    {item.id === "eli-setup" && !showWelcome && clientItemsLeft > 0 && (
                       <Badge variant="yellow" className="text-xs">{clientItemsLeft}</Badge>
                     )}
                     {isActive && <ChevronRight className="h-4 w-4" aria-hidden="true" />}
@@ -154,7 +169,7 @@ export default function EliPlusImplementationTracker() {
                 A few items need your input before activation. Most clients finish in a single session.
               </p>
               <div className="flex flex-col gap-3 w-full max-w-xs">
-                <Button variant="primary" size="lg" className="w-full" onClick={() => { setWelcomeDismissed(true); controls.setValue("viewState", "normal"); setTab("checklist") }}>
+                <Button variant="primary" size="lg" className="w-full" onClick={startSetup}>
                   Start Setup
                 </Button>
                 <Button variant="outline" size="lg" className="w-full" onClick={() => window.open("https://support.entrata.com", "_blank")}>
@@ -192,7 +207,7 @@ export default function EliPlusImplementationTracker() {
                 </div>
               </div>
 
-              <OverviewDashboard data={data} role={role} viewState={viewState} onNavigateToProperty={() => setTab("properties")} onStartSetup={() => setTab("checklist")} />
+              <OverviewDashboard data={data} role={role} viewState={effectiveViewState} onNavigateToProperty={() => setTab("properties")} onStartSetup={() => setTab("checklist")} />
 
               <TabsProvider variant="subtab">
                 <Tabs value={activeTab} onValueChange={setTab}>
@@ -203,13 +218,13 @@ export default function EliPlusImplementationTracker() {
                     <TabsTrigger value="settings-map"><Wrench className="h-4 w-4" aria-hidden="true" />Settings Map</TabsTrigger>
                     {role === "internal" && <TabsTrigger value="pipeline"><Shield className="h-4 w-4" aria-hidden="true" />Pipeline</TabsTrigger>}
                   </TabsList>
-                  <TabsContent value="checklist"><ImplementationChecklist items={data.companyItems} role={role} viewState={viewState} onAllComplete={() => setTab("activation")} /></TabsContent>
+                  <TabsContent value="checklist"><ImplementationChecklist items={data.companyItems} role={role} viewState={effectiveViewState} onAllComplete={() => setTab("activation")} /></TabsContent>
                   <TabsContent value="properties">
-                    <PropertyReadiness properties={data.properties} role={role} viewState={viewState} selectedPropertyId={propertyId} onSelectProperty={selectProperty} />
+                    <PropertyReadiness properties={data.properties} role={role} viewState={effectiveViewState} selectedPropertyId={propertyId} onSelectProperty={selectProperty} />
                   </TabsContent>
-                  <TabsContent value="activation"><AgentActivation data={data} role={role} viewState={viewState} onGoToChecklist={() => setTab("checklist")} /></TabsContent>
-                  <TabsContent value="settings-map"><SettingsIntelligence viewState={viewState} /></TabsContent>
-                  {role === "internal" && <TabsContent value="pipeline"><InternalPipeline items={data.companyItems} viewState={viewState} /></TabsContent>}
+                  <TabsContent value="activation"><AgentActivation data={data} role={role} viewState={effectiveViewState} onGoToChecklist={() => setTab("checklist")} /></TabsContent>
+                  <TabsContent value="settings-map"><SettingsIntelligence viewState={effectiveViewState} /></TabsContent>
+                  {role === "internal" && <TabsContent value="pipeline"><InternalPipeline items={data.companyItems} viewState={effectiveViewState} /></TabsContent>}
                 </Tabs>
               </TabsProvider>
             </div>

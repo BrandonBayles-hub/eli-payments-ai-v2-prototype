@@ -4,12 +4,13 @@ import { usePrototypeControls } from "@sandbox-components/prototype"
 import { PageHeader } from "@sandbox-components/composite/PageHeader"
 import { Button } from "@sandbox-components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger, TabsProvider } from "@sandbox-components/ui/tabs"
-import { Building2, LayoutDashboard, Rocket, Shield, Headphones, Users } from "lucide-react"
+import { Building2, LayoutDashboard, Rocket, Shield, Headphones, Users, Settings } from "lucide-react"
 import { OverviewDashboard } from "./components/OverviewDashboard"
 import { ImplementationChecklist } from "./components/ImplementationChecklist"
 import { PropertyReadiness } from "./components/PropertyReadiness"
 import { InternalPipeline } from "./components/InternalPipeline"
 import { AgentActivation } from "./components/AgentActivation"
+import { SettingsIntelligence } from "./components/SettingsIntelligence"
 import { newClientImplementation, backfillImplementation } from "./data/sample-data"
 import type { ViewRole, ClientSegment } from "./types"
 
@@ -35,8 +36,8 @@ export default function EliPlusImplementationTracker() {
   const data = segment === "new" ? newClientImplementation : backfillImplementation
   const propertyId = searchParams.get("property")
   const valid = role === "internal"
-    ? new Set(["checklist", "properties", "activation", "pipeline"])
-    : new Set(["checklist", "properties", "activation"])
+    ? new Set(["checklist", "properties", "activation", "settings-map", "pipeline"])
+    : new Set(["checklist", "properties", "activation", "settings-map"])
   const tabParam = searchParams.get("tab") ?? "checklist"
   const tabFromUrl = valid.has(tabParam) ? tabParam : "checklist"
   const activeTab = propertyId ? "properties" : tabFromUrl
@@ -70,6 +71,7 @@ export default function EliPlusImplementationTracker() {
               <TabsTrigger value="checklist"><LayoutDashboard className="h-4 w-4" aria-hidden="true" />{role === "client" ? "What We Need" : "Checklist"}</TabsTrigger>
               <TabsTrigger value="properties"><Building2 className="h-4 w-4" aria-hidden="true" />Properties</TabsTrigger>
               <TabsTrigger value="activation"><Rocket className="h-4 w-4" aria-hidden="true" />{role === "client" ? "Go Live" : "Activation"}</TabsTrigger>
+              <TabsTrigger value="settings-map"><Settings className="h-4 w-4" aria-hidden="true" />Settings Map</TabsTrigger>
               {role === "internal" && <TabsTrigger value="pipeline"><Shield className="h-4 w-4" aria-hidden="true" />Pipeline</TabsTrigger>}
             </TabsList>
             <TabsContent value="checklist"><ImplementationChecklist items={data.companyItems} role={role} viewState={viewState} /></TabsContent>
@@ -77,6 +79,7 @@ export default function EliPlusImplementationTracker() {
               <PropertyReadiness properties={data.properties} role={role} viewState={viewState} selectedPropertyId={propertyId} onSelectProperty={selectProperty} />
             </TabsContent>
             <TabsContent value="activation"><AgentActivation data={data} role={role} viewState={viewState} /></TabsContent>
+            <TabsContent value="settings-map"><SettingsIntelligence viewState={viewState} /></TabsContent>
             {role === "internal" && <TabsContent value="pipeline"><InternalPipeline items={data.companyItems} viewState={viewState} /></TabsContent>}
           </Tabs>
         </TabsProvider>

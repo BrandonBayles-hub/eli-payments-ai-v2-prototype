@@ -61,10 +61,10 @@ export default function EliPlusImplementationTracker() {
             ? `Track what's needed to get ELI+ live across your ${data.propertiesTotal} properties.`
             : `Implementation pipeline for ${data.companyName} (${data.companyId}) — ${segLabel} client.`}
           actions={role === "client" ? (
-            <Button variant="outline"><Headphones className="h-4 w-4" aria-hidden="true" />Contact Support</Button>
+            <Button variant="outline" onClick={() => window.open("https://support.entrata.com", "_blank")}><Headphones className="h-4 w-4" aria-hidden="true" />Contact Support</Button>
           ) : undefined}
         />
-        <OverviewDashboard data={data} role={role} viewState={viewState} />
+        <OverviewDashboard data={data} role={role} viewState={viewState} onNavigateToProperty={() => setTab("properties")} onStartSetup={() => setTab("checklist")} />
         <TabsProvider variant="subtab">
           <Tabs value={activeTab} onValueChange={setTab}>
             <TabsList>
@@ -78,7 +78,7 @@ export default function EliPlusImplementationTracker() {
             <TabsContent value="properties">
               <PropertyReadiness properties={data.properties} role={role} viewState={viewState} selectedPropertyId={propertyId} onSelectProperty={selectProperty} />
             </TabsContent>
-            <TabsContent value="activation"><AgentActivation data={data} role={role} viewState={viewState} /></TabsContent>
+            <TabsContent value="activation"><AgentActivation data={data} role={role} viewState={viewState} onGoToChecklist={() => setTab("checklist")} /></TabsContent>
             <TabsContent value="settings-map"><SettingsIntelligence viewState={viewState} /></TabsContent>
             {role === "internal" && <TabsContent value="pipeline"><InternalPipeline items={data.companyItems} viewState={viewState} /></TabsContent>}
           </Tabs>

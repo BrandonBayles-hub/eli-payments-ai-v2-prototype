@@ -72,9 +72,10 @@ export interface AgentActivationProps {
   data: CompanyImplementation
   role: ViewRole
   viewState: string
+  onGoToChecklist?: () => void
 }
 
-export function AgentActivation({ data, role, viewState }: AgentActivationProps) {
+export function AgentActivation({ data, role, viewState, onGoToChecklist }: AgentActivationProps) {
   const [ok, setOk] = useState(false)
   const [off, setOff] = useState(false)
   const st = data.activationStatus ?? "not_ready"
@@ -99,7 +100,7 @@ export function AgentActivation({ data, role, viewState }: AgentActivationProps)
         <AlertCircle className="h-12 w-12 text-error-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-1">Unable to load activation</h3>
         <p className="text-sm text-muted-foreground mb-4">Something went wrong. Please try again.</p>
-        <Button variant="outline"><RefreshCw className="h-4 w-4" />Try Again</Button>
+        <Button variant="outline" onClick={() => window.location.reload()}><RefreshCw className="h-4 w-4" />Try Again</Button>
       </div>
     )
   }
@@ -107,7 +108,7 @@ export function AgentActivation({ data, role, viewState }: AgentActivationProps)
     return (
       <EmptyState icon={Rocket} title="Complete your checklist to unlock activation"
         description="Once you've provided the required items — your EIN, emergency contact numbers, and a few confirmations — we handle the rest. Carrier registration, settings sync, email provisioning, and IVR setup all happen automatically. When everything checks out, you'll see a single button to take ELI+ live across all your properties."
-        action={<Button variant="primary">Go to Checklist</Button>} />
+        action={<Button variant="primary" onClick={onGoToChecklist}>Go to Checklist</Button>} />
     )
   }
   if (st === "trial_expired") {

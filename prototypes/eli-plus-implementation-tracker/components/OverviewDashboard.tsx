@@ -48,9 +48,10 @@ export interface OverviewDashboardProps {
   role: ViewRole
   viewState: string
   onNavigateToProperty: () => void
+  onStartSetup: () => void
 }
 
-export function OverviewDashboard({ data, role, viewState, onNavigateToProperty }: OverviewDashboardProps) {
+export function OverviewDashboard({ data, role, viewState, onNavigateToProperty, onStartSetup }: OverviewDashboardProps) {
   if (viewState === "loading") {
     return (
       <div className="space-y-6">
@@ -67,7 +68,7 @@ export function OverviewDashboard({ data, role, viewState, onNavigateToProperty 
         <AlertCircle className="h-12 w-12 text-error-foreground mb-4" aria-hidden="true" />
         <h3 className="text-lg font-semibold mb-1">Unable to load implementation status</h3>
         <p className="text-sm text-muted-foreground mb-4">Something went wrong. Please try again.</p>
-        <Button variant="outline" type="button">
+        <Button variant="outline" type="button" onClick={() => window.location.reload()}>
           <RefreshCw className="h-4 w-4" aria-hidden="true" />
           Try Again
         </Button>
@@ -80,7 +81,7 @@ export function OverviewDashboard({ data, role, viewState, onNavigateToProperty 
         icon={Zap}
         title="Welcome to ELI+ — let's get you set up"
         description="We've already pulled your property data from Entrata — addresses, office hours, policies, and financial settings are pre-filled. A few items need your input before we can activate. Head to the checklist to review what's ready and provide what's missing. Most clients complete setup in a single session."
-        action={<Button variant="primary">Start Setup</Button>}
+        action={<Button variant="primary" onClick={onStartSetup}>Start Setup</Button>}
       />
     )
   }

@@ -194,7 +194,7 @@ export function ImplementationChecklist({ items, role, viewState }: Props) {
         <AlertCircle className="h-12 w-12 text-error-foreground mb-4" aria-hidden />
         <h3 className="text-lg font-semibold mb-1">Unable to load checklist</h3>
         <p className="text-sm text-muted-foreground mb-4">Something went wrong. Please try again.</p>
-        <Button variant="outline" type="button"><RefreshCw className="h-4 w-4" />Try Again</Button>
+        <Button variant="outline" type="button" onClick={() => window.location.reload()}><RefreshCw className="h-4 w-4" />Try Again</Button>
       </div>
     )
   }
@@ -205,7 +205,7 @@ export function ImplementationChecklist({ items, role, viewState }: Props) {
         icon={CheckCircle2}
         title="Your checklist is being prepared"
         description="We're scanning your Entrata settings to pre-fill as much as possible — company address, office hours, property policies, pet and parking rules, financial settings, and more. In a moment, you'll see a checklist showing what's already confirmed and the few items that need your input. Most clients only need to provide an EIN, emergency contact numbers, and confirm a handful of settings."
-        action={<Button variant="primary">Refresh</Button>}
+        action={<Button variant="primary" onClick={() => window.location.reload()}>Refresh</Button>}
       />
     )
   }

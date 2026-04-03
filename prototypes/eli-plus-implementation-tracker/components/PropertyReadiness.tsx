@@ -93,7 +93,7 @@ export function PropertyReadiness({
         <AlertCircle className="h-12 w-12 text-error-foreground mb-4" aria-hidden="true" />
         <h3 className="text-lg font-semibold mb-1">Unable to load property data</h3>
         <p className="text-sm text-muted-foreground mb-4">Something went wrong. Please try again.</p>
-        <Button variant="outline"><RefreshCw className="h-4 w-4" />Try Again</Button>
+        <Button variant="outline" onClick={() => window.location.reload()}><RefreshCw className="h-4 w-4" />Try Again</Button>
       </div>
     )
   }
@@ -103,7 +103,7 @@ export function PropertyReadiness({
         icon={Building2}
         title="Loading your properties from Entrata"
         description="We're pulling your property list, addresses, unit counts, and existing settings. Each property will show its readiness across SMS, voice, email, and chat — so you can see exactly which are ready to go live and which need attention. This usually takes less than a minute."
-        action={<Button variant="primary">Refresh</Button>}
+        action={<Button variant="primary" onClick={() => window.location.reload()}>Refresh</Button>}
       />
     )
   }

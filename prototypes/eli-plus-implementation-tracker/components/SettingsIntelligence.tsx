@@ -92,7 +92,7 @@ export function SettingsIntelligence({ viewState }: SettingsIntelligenceProps) {
         <AlertCircle className="h-12 w-12 text-error-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-1">Unable to load settings map</h3>
         <p className="text-sm text-muted-foreground mb-4">Something went wrong.</p>
-        <Button variant="outline"><RefreshCw className="h-4 w-4" />Try Again</Button>
+        <Button variant="outline" onClick={() => window.location.reload()}><RefreshCw className="h-4 w-4" />Try Again</Button>
       </div>
     )
   }

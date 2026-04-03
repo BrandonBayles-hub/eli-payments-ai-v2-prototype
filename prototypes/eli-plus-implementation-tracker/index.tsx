@@ -14,7 +14,7 @@ import { PropertyReadiness } from "./components/PropertyReadiness"
 import { InternalPipeline } from "./components/InternalPipeline"
 import { AgentActivation } from "./components/AgentActivation"
 import { SettingsIntelligence } from "./components/SettingsIntelligence"
-import { newClientImplementation, backfillImplementation } from "./data/sample-data"
+import { newClientImplementation, backfillImplementation, freshStartImplementation } from "./data/sample-data"
 import type { ViewRole, ClientSegment } from "./types"
 
 type OxpSection = "command-center" | "agent-roster" | "eli-setup" | "conversations" | "escalations" | "workforce" | "trainings" | "settings"
@@ -53,16 +53,19 @@ export default function EliPlusImplementationTracker() {
   const role = controls.value("role") as ViewRole
   const segment = controls.value("segment") as ClientSegment
   const viewState = controls.value("viewState")
-  const data = segment === "new" ? newClientImplementation : backfillImplementation
+
+  const isFirstVisit = viewState === "first-visit"
+  const baseData = segment === "new" ? newClientImplementation : backfillImplementation
+  const data = isFirstVisit ? freshStartImplementation : baseData
 
   const [setupStarted, setSetupStarted] = useState(false)
 
   useEffect(() => {
-    if (viewState === "first-visit") setSetupStarted(false)
-  }, [viewState])
+    if (isFirstVisit) setSetupStarted(false)
+  }, [isFirstVisit])
 
-  const showWelcome = viewState === "first-visit" && !setupStarted
-  const effectiveViewState = viewState === "first-visit" ? "normal" : viewState
+  const showWelcome = isFirstVisit && !setupStarted
+  const effectiveViewState = isFirstVisit ? "normal" : viewState
 
   const propertyId = searchParams.get("property")
   const validTabs = useMemo(() => {

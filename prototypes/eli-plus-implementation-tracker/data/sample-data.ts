@@ -626,6 +626,83 @@ export const newClientImplementation: CompanyImplementation = buildCompany(
   "not_ready",
 )
 
+// Fresh start: just contracted, Entrata scan complete, nothing submitted yet
+const freshProperties: PropertyReadinessEntry[] = Array.from({ length: 112 }, (_, i) => ({
+  id: `prop-${i + 1}`,
+  name: PROPERTY_NAMES[i % PROPERTY_NAMES.length],
+  address: `${1000 + i * 37} ${pick(STREETS, 50_000 + i * 2)}, ${pick(CITIES, 50_000 + i * 2 + 1)}`,
+  units: Math.floor(80 + (Math.sin(77 + i * 127.1) * 43758.5453 - Math.floor(Math.sin(77 + i * 127.1) * 43758.5453)) * 320),
+  smsStatus: "not_started" as ChannelStatus,
+  voiceStatus: "not_started" as ChannelStatus,
+  emailStatus: "not_started" as ChannelStatus,
+  chatStatus: "not_started" as ChannelStatus,
+  emergencyContact: false,
+  settingsComplete: false,
+  shellCreated: false,
+  twilioStatus: "not_started" as TwilioPropertyStatus,
+  ivrStatus: "not_started" as ChannelStatus,
+  overallReady: false,
+  blockers: ["Setup not started"],
+  contractedProducts: [...CONTRACTED_ALL],
+  leasingReady: false,
+  paymentsReady: false,
+  renewalsReady: false,
+  maintenanceReady: false,
+}))
+
+export const freshStartImplementation: CompanyImplementation = buildCompany(
+  "CID-7203",
+  "Greystar Real Estate Partners",
+  "new",
+  CONTRACTED_ALL,
+  freshProperties,
+  {
+    // Company info: address and website pulled from Entrata, everything else needs input
+    ein: { status: "needs_input" },
+    auth_rep: { status: "needs_input" },
+    privacy_policy: { status: "needs_input" },
+    business_address: { status: "auto_confirmed", sourceIfBackfill: "Pulled from Entrata company record" },
+    website_url: { status: "auto_confirmed", sourceIfBackfill: "Pulled from Marketing tab" },
+
+    // Comms: nothing started
+    twilio_profile: { status: "not_started" },
+    twilio_brand: { status: "not_started" },
+    twilio_campaigns: { status: "not_started" },
+    phone_numbers: { status: "not_started" },
+    third_party_website: { status: "needs_input" },
+
+    // Property details: all need input
+    emergency_contacts: { status: "needs_input" },
+    ivr_preferences: { status: "auto_confirmed", sourceIfBackfill: "Standard IVR template will be applied" },
+    prospect_portal: { status: "auto_confirmed", sourceIfBackfill: "Pulled from Marketing tab" },
+
+    // ELI+ settings: auto-confirmable ones are confirmed, rest need input
+    payments_grace_period: { status: "auto_confirmed", sourceIfBackfill: "Pulled from Entrata financial settings" },
+    payments_block_day: { status: "needs_input" },
+    payments_activation_window: { status: "auto_confirmed", sourceIfBackfill: "Standard activation window" },
+    leasing_lead_assignment: { status: "auto_confirmed", sourceIfBackfill: "Pulled from Leasing settings" },
+    email_override: { status: "auto_confirmed", sourceIfBackfill: "Default Entrata domain" },
+    maintenance_afterhours: { status: "needs_input" },
+    renewals_comm_prefs: { status: "auto_confirmed", sourceIfBackfill: "Standard renewal cadence" },
+    communication_channels: { status: "auto_confirmed", sourceIfBackfill: "All channels enabled by default" },
+
+    // Backend: all not started
+    shell_creation: { status: "not_started" },
+    api_credentials: { status: "not_started" },
+    product_defaults: { status: "not_started" },
+    email_provisioned: { status: "not_started" },
+    ivr_configured: { status: "not_started" },
+    settings_synced: { status: "not_started" },
+    oxp_restriction_removed: { status: "not_started" },
+    facilities_pro_check: { status: "not_started" },
+
+    // Activation: not started
+    staging_readiness: { status: "not_started" },
+    go_live_toggle: { status: "not_started" },
+  },
+  "not_ready",
+)
+
 export const backfillImplementation: CompanyImplementation = buildCompany(
   "CID-1392",
   "Burkentine Property Management",

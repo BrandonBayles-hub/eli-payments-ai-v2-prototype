@@ -1,0 +1,5 @@
+{
+  "title": "ELI+ Onboarding — Hybrid (Overview + Guided + Advanced)",
+  "description": "Combines tracker-style overview and “what we need” routing with a 3001-style left nav and a dedicated Advanced settings workspace (dense table, save, breadcrumbs). Prototype for PMC implementation onboarding.",
+  "tags": ["eli+", "onboarding", "hybrid", "implementation"]
+}

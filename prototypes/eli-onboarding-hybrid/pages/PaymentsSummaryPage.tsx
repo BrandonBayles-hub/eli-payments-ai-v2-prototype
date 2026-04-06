@@ -10,6 +10,40 @@ import { PolicySheetContent } from "../components/PolicySheetContent"
 import { PaymentOptionsSheetContent } from "../components/PaymentOptionsSheetContent"
 import { LateFeeSheetContent, makeDefaultLateFeePolicy, type LateFeeState } from "../components/LateFeeSheetContent"
 import { PaymentPlanPolicySheetContent, makeDefaultPaymentPlanPolicy, type PaymentPlanPolicyState } from "../components/PaymentPlanPolicySheetContent"
+import { AgentTabBar, VoiceTab, TestAgentTab, VOICES, type AgentTopTab, type ChatScenario } from "../components/AgentTabs"
+
+const PAYMENTS_SCENARIOS: ChatScenario[] = [
+  {
+    label: "Late rent inquiry",
+    messages: [
+      { role: "eli",      text: "Hi! I'm ELI, your AI assistant for Sunset Property Group. How can I help you today?" },
+      { role: "prospect", text: "I got a notice about a late fee. I thought I paid on time?" },
+      { role: "eli",      text: "I'm sorry to hear that. Late fees are applied when payment is received after the grace period date — typically the 4th of the month. Can I pull up your account to check the payment date?" },
+      { role: "prospect", text: "Yes please. I paid on the 5th." },
+      { role: "eli",      text: "Payments received on the 5th would be past the grace period and subject to the late fee. However, first-time waivers may be available. I can connect you with your leasing office to request a review — would that help?" },
+    ],
+  },
+  {
+    label: "Payment plan request",
+    messages: [
+      { role: "eli",      text: "Hi! I'm ELI. I see you reached out about your account. What can I help you with?" },
+      { role: "prospect", text: "I'm behind on rent and wondering if I can do a payment plan." },
+      { role: "eli",      text: "Of course — I can help with that. Payment plans are available for residents with outstanding balances. They require a signed repayment agreement and a minimum first payment. Would you like me to connect you with your property manager to get one set up?" },
+      { role: "prospect", text: "Yes, how long do I have to pay it off?" },
+      { role: "eli",      text: "Plans are typically structured to be completed within 90 days, depending on your balance. Your property manager will walk you through the specific terms. I'll send you their contact info now." },
+    ],
+  },
+  {
+    label: "How to pay",
+    messages: [
+      { role: "eli",      text: "Hey there! I'm ELI. Happy to help with any payment questions." },
+      { role: "prospect", text: "What are my options for paying rent?" },
+      { role: "eli",      text: "You can pay online through the resident portal, by ACH bank transfer, by check, or with cash starting the 1st of each month. Credit card payments are not accepted. Would you like me to send you the link to your payment portal?" },
+      { role: "prospect", text: "Yes, what's the link?" },
+      { role: "eli",      text: "I'm sending the portal link to the email on file now. You can also access it anytime at sunsetpropertygroup.com/pay. Let me know if you have any trouble logging in!" },
+    ],
+  },
+]
 
 /** Settings auto-inferred from Entrata — not blockers, but should be reviewed. */
 const DEFAULT_SETTINGS: Record<string, { value: string; source: string }> = {
@@ -102,6 +136,9 @@ export function PaymentsSummaryPage({ navigate, completedTasks, onComplete }: Ba
   const [validMap, setValidMap] = useState<Record<string, boolean>>({})
   const [lateFeePolicy, setLateFeePolicy] = useState<LateFeeState>(() => makeDefaultLateFeePolicy())
   const [paymentPlanPolicy, setPaymentPlanPolicy] = useState<PaymentPlanPolicyState>(() => makeDefaultPaymentPlanPolicy())
+  const [topTab, setTopTab] = useState<AgentTopTab>("configure")
+  const [selectedVoice, setSelectedVoice] = useState("jordan")
+  const voiceName = VOICES.find(v => v.id === selectedVoice)?.name ?? "Jordan"
 
   function setValid(id: string, v: boolean) {
     setValidMap((prev) => ({ ...prev, [id]: v }))
@@ -117,27 +154,37 @@ export function PaymentsSummaryPage({ navigate, completedTasks, onComplete }: Ba
   const effectiveCount = SETTINGS.filter((s) => completedTasks?.has(s.id) || DEFAULT_SETTINGS[s.id]).length
 
   return (
-    <div className="p-6 md:p-8 max-w-2xl space-y-6">
-      <button
-        type="button"
-        onClick={() => navigate("overview")}
-        className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-1 -ml-2 text-muted-foreground")}
-      >
-        <ArrowLeft className="h-4 w-4" aria-hidden />
-        Overview
-      </button>
-
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Payments AI</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Configure payment settings for your portfolio. Expand any section to update values — changes apply immediately.
-          </p>
-        </div>
-        <span className="text-xs text-muted-foreground tabular-nums shrink-0 mt-1.5">
-          {effectiveCount} / {SETTINGS.length} ready
-        </span>
+    <div className="p-6 md:p-8 space-y-5">
+      <div>
+        <button
+          type="button"
+          onClick={() => navigate("overview")}
+          className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-1 -ml-2 text-muted-foreground mb-3")}
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden />
+          Overview
+        </button>
+        <h1 className="text-2xl font-bold tracking-tight">Payments AI</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Configure payment settings, select a voice, and test ELI's payment interactions.
+        </p>
       </div>
+
+      <AgentTabBar activeTab={topTab} onTabChange={setTopTab} />
+
+      {topTab === "voices" && <VoiceTab selectedVoice={selectedVoice} onSelect={setSelectedVoice} />}
+      {topTab === "test"   && <TestAgentTab productLabel="Payments AI" voiceName={voiceName} scenarios={PAYMENTS_SCENARIOS} />}
+
+      {topTab === "configure" && (
+      <div className="max-w-2xl space-y-6">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Expand any section to review or update — changes apply immediately.
+          </p>
+          <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+            {effectiveCount} / {SETTINGS.length} ready
+          </span>
+        </div>
 
       {/* Progress bar */}
       <div className="h-1.5 w-full rounded-full bg-zinc-100 overflow-hidden">
@@ -325,6 +372,8 @@ export function PaymentsSummaryPage({ navigate, completedTasks, onComplete }: Ba
           )
         })}
       </div>
+      </div>
+      )}
     </div>
   )
 }

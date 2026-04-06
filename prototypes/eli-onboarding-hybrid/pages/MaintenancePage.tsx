@@ -12,6 +12,40 @@ import {
   ENTRATA_AFTER_PATH,
 } from "../data/entrata-imports"
 import { formatPhone, isValidPhone } from "../components/PhoneNumberSheetContent"
+import { AgentTabBar, VoiceTab, TestAgentTab, VOICES, type AgentTopTab, type ChatScenario } from "../components/AgentTabs"
+
+const MAINTENANCE_SCENARIOS: ChatScenario[] = [
+  {
+    label: "Emergency request",
+    messages: [
+      { role: "eli",      text: "Hi, this is ELI from Sunset Property Group. I see you submitted an urgent maintenance request. Can you describe what's happening?" },
+      { role: "prospect", text: "There's water pouring from my ceiling — it's coming from the unit above me." },
+      { role: "eli",      text: "That sounds like a serious leak and I'm escalating this right now. I'm connecting you to your emergency maintenance line. Please stay on and gather anything valuable away from the area while we get someone out." },
+      { role: "prospect", text: "How long will it take?" },
+      { role: "eli",      text: "Emergency response targets within 2 hours. I'm sending your contact info and unit details to the on-call tech now. You'll get a call or text within 15 minutes to confirm arrival time." },
+    ],
+  },
+  {
+    label: "Repair status check",
+    messages: [
+      { role: "eli",      text: "Hi! I'm ELI. I can help you check the status of an open work order. Can you give me your name or unit number?" },
+      { role: "prospect", text: "It's unit 214. I put in a request about my dishwasher two days ago." },
+      { role: "eli",      text: "I see your work order for unit 214 — dishwasher not draining, submitted Tuesday. It's currently scheduled for Thursday between 10 AM and 2 PM. Does that work for you, or would you like to reschedule?" },
+      { role: "prospect", text: "Thursday works. Do I need to be home?" },
+      { role: "eli",      text: "For appliance repairs, our team does need access to the unit. If you can't be there, we can note that you've given permission to enter. Would you like me to add a permission to enter to the work order?" },
+    ],
+  },
+  {
+    label: "Non-emergency issue",
+    messages: [
+      { role: "eli",      text: "Hi! I'm ELI. What maintenance issue can I help you report today?" },
+      { role: "prospect", text: "My bathroom faucet has been dripping for a few days." },
+      { role: "eli",      text: "Got it — a dripping faucet in your bathroom. I'll create a work order for that right now. Would you prefer morning, afternoon, or no preference for scheduling?" },
+      { role: "prospect", text: "Afternoons work best." },
+      { role: "eli",      text: "I've logged the work order and noted afternoon availability. You'll get a confirmation with the scheduled window once it's assigned — typically within 1–2 business days for non-emergency requests." },
+    ],
+  },
+]
 
 interface Props {
   navigate: (to: PageId) => void
@@ -126,6 +160,9 @@ function PhoneTable({
 
 export function MaintenancePage({ navigate, duringPhones, onDuringPhoneChange, afterPhones, onAfterPhoneChange }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>("during")
+  const [topTab, setTopTab] = useState<AgentTopTab>("configure")
+  const [selectedVoice, setSelectedVoice] = useState("morgan")
+  const voiceName = VOICES.find(v => v.id === selectedVoice)?.name ?? "Morgan"
 
   const duringFilled = Object.values(duringPhones).filter(isValidPhone).length
   const afterFilled = Object.values(afterPhones).filter(isValidPhone).length
@@ -142,22 +179,29 @@ export function MaintenancePage({ navigate, duringPhones, onDuringPhoneChange, a
   const entrataCount = Object.keys(activeTabData.entrataValues).length
 
   return (
-    <div className="p-6 md:p-8 max-w-3xl space-y-6">
-      <button
-        type="button"
-        onClick={() => navigate("overview")}
-        className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-1 -ml-2 text-muted-foreground")}
-      >
-        <ArrowLeft className="h-4 w-4" aria-hidden />
-        Overview
-      </button>
-
+    <div className="p-6 md:p-8 space-y-5">
       <div>
+        <button
+          type="button"
+          onClick={() => navigate("overview")}
+          className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-1 -ml-2 text-muted-foreground mb-3")}
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden />
+          Overview
+        </button>
         <h1 className="text-2xl font-bold tracking-tight">Maintenance AI</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Set an escalation phone number for each property. Each property routes to its own line — these cannot be shared across the portfolio.
+          Configure escalation routing, select a voice, and test how ELI handles maintenance requests.
         </p>
       </div>
+
+      <AgentTabBar activeTab={topTab} onTabChange={setTopTab} />
+
+      {topTab === "voices" && <VoiceTab selectedVoice={selectedVoice} onSelect={setSelectedVoice} />}
+      {topTab === "test"   && <TestAgentTab productLabel="Maintenance AI" voiceName={voiceName} scenarios={MAINTENANCE_SCENARIOS} />}
+
+      {topTab === "configure" && (
+      <div className="max-w-3xl space-y-6">
 
       {/* Progress bar */}
       <div>
@@ -241,6 +285,8 @@ export function MaintenancePage({ navigate, duringPhones, onDuringPhoneChange, a
       </div>
 
       <PhoneTable phones={phones} onChange={onPhoneChange} entrataValues={activeTabData.entrataValues} />
+      </div>
+      )}
     </div>
   )
 }

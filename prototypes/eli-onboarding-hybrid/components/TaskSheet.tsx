@@ -51,7 +51,7 @@ export function TaskSheet({ open, title, description, onClose, onSave, saveLabel
         aria-modal="true"
         aria-label={title}
         className={cn(
-          "fixed top-0 right-0 h-full w-full max-w-[500px] bg-background shadow-2xl z-50 flex flex-col",
+          "fixed top-0 right-0 h-full w-full max-w-[680px] bg-background shadow-2xl z-50 flex flex-col",
           "transition-transform duration-250 ease-in-out",
           open ? "translate-x-0" : "translate-x-full",
         )}

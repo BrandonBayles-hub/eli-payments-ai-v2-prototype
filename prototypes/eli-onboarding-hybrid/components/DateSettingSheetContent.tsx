@@ -1,34 +1,26 @@
 import { useState, useEffect } from "react"
 import { cn } from "@sandbox-lib/utils"
-import { CheckCircle2 } from "lucide-react"
-
-const PROPERTIES = [
-  { id: "p1", name: "Sunset Ridge",     city: "Austin" },
-  { id: "p2", name: "Harbor View",      city: "Denver" },
-  { id: "p3", name: "Maple Commons",    city: "Phoenix" },
-  { id: "p4", name: "The Edison",       city: "Dallas" },
-  { id: "p5", name: "Parkside Lofts",   city: "Houston" },
-  { id: "p6", name: "River North Plaza",city: "Austin" },
-  { id: "p7", name: "Cedar Glen",       city: "Denver" },
-  { id: "p8", name: "Oakwood Terrace",  city: "Phoenix" },
-]
+import { CheckCircle2, ChevronDown } from "lucide-react"
+import { PROPERTIES } from "../data/properties"
+import { PropertyFilter, usePropertyFilter } from "./PropertyFilter"
 
 const DAY_OPTIONS = Array.from({ length: 31 }, (_, i) => String(i + 1))
 
 interface Props {
-  /** Human label shown in the per-property column header, e.g. "Rent Charge Date" */
   label: string
   onValidChange: (valid: boolean) => void
+  /** Pre-fill all properties with this day value (e.g. "1", "6") when a default has been applied */
+  defaultDay?: string
 }
 
-export function DateSettingSheetContent({ label, onValidChange }: Props) {
-  const [bulkValue, setBulkValue] = useState("")
-  const [applied, setApplied] = useState(false)
+export function DateSettingSheetContent({ label, onValidChange, defaultDay }: Props) {
+  const [bulkValue, setBulkValue] = useState(defaultDay ?? "")
+  const [applied, setApplied] = useState(!!defaultDay)
   const [perProperty, setPerProperty] = useState<Record<string, string>>(
-    Object.fromEntries(PROPERTIES.map((p) => [p.id, ""])),
+    Object.fromEntries(PROPERTIES.map((p) => [p.id, defaultDay ?? ""])),
   )
+  const { search, setSearch, group, setGroup, filtered } = usePropertyFilter()
 
-  // Valid once any property has a value
   useEffect(() => {
     const anySet = Object.values(perProperty).some((v) => v !== "")
     onValidChange(anySet)
@@ -51,16 +43,19 @@ export function DateSettingSheetContent({ label, onValidChange }: Props) {
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <select
-            value={bulkValue}
-            onChange={(e) => { setBulkValue(e.target.value); setApplied(false) }}
-            className="h-9 rounded-lg border border-border bg-white px-3 text-sm text-foreground w-32 focus:outline-none focus:ring-2 focus:ring-zinc-900/20"
-          >
-            <option value="">Day of month</option>
-            {DAY_OPTIONS.map((v) => (
-              <option key={v} value={v}>{v}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={bulkValue}
+              onChange={(e) => { setBulkValue(e.target.value); setApplied(false) }}
+              className="h-9 appearance-none rounded-lg border border-border bg-white pl-3 pr-9 text-sm text-foreground w-40 focus:outline-none focus:ring-2 focus:ring-zinc-900/20"
+            >
+              <option value="">Day of month</option>
+              {DAY_OPTIONS.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+          </div>
           <button
             type="button"
             disabled={!bulkValue}
@@ -72,7 +67,7 @@ export function DateSettingSheetContent({ label, onValidChange }: Props) {
           {applied && (
             <span className="flex items-center gap-1 text-xs text-emerald-700 font-medium">
               <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-              Applied to {PROPERTIES.length} properties
+              {defaultDay && bulkValue === defaultDay ? `Default (${defaultDay}) applied to ${PROPERTIES.length} properties` : `Applied to ${PROPERTIES.length} properties`}
             </span>
           )}
         </div>
@@ -82,44 +77,63 @@ export function DateSettingSheetContent({ label, onValidChange }: Props) {
       <div className="space-y-2">
         <p className="text-sm font-semibold text-foreground">Per-Property Override</p>
         <p className="text-xs text-muted-foreground">Customize individual properties if needed.</p>
+
+        <PropertyFilter
+          search={search}
+          onSearchChange={setSearch}
+          group={group}
+          onGroupChange={setGroup}
+          resultCount={filtered.length}
+          totalCount={PROPERTIES.length}
+        />
+
         <div className="rounded-xl border border-border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-zinc-50">
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Property</th>
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">City</th>
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">{label}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {PROPERTIES.map((prop, idx) => (
-                <tr
-                  key={prop.id}
-                  className={cn(
-                    "border-b border-border last:border-0",
-                    idx % 2 === 0 ? "bg-white" : "bg-zinc-50/50",
-                  )}
-                >
-                  <td className="px-4 py-3 font-medium text-foreground">{prop.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{prop.city}</td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={perProperty[prop.id]}
-                      onChange={(e) =>
-                        setPerProperty((prev) => ({ ...prev, [prop.id]: e.target.value }))
-                      }
-                      className="h-8 rounded-lg border border-border bg-white px-2 text-sm text-foreground w-24 focus:outline-none focus:ring-2 focus:ring-zinc-900/20"
-                    >
-                      <option value="">—</option>
-                      {DAY_OPTIONS.map((v) => (
-                        <option key={v} value={v}>{v}</option>
-                      ))}
-                    </select>
-                  </td>
+          {filtered.length === 0 ? (
+            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+              No properties match your filter.
+            </div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-zinc-50">
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Property</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Location</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">{label}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((prop, idx) => (
+                  <tr
+                    key={prop.id}
+                    className={cn(
+                      "border-b border-border last:border-0",
+                      idx % 2 === 0 ? "bg-white" : "bg-zinc-50/50",
+                    )}
+                  >
+                    <td className="px-4 py-3 font-medium text-foreground">{prop.name}</td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs">{prop.city}, {prop.state}</td>
+                    <td className="px-4 py-3">
+                    <div className="relative">
+                      <select
+                        value={perProperty[prop.id]}
+                        onChange={(e) =>
+                          setPerProperty((prev) => ({ ...prev, [prop.id]: e.target.value }))
+                        }
+                        className="h-8 appearance-none rounded-lg border border-border bg-white pl-2 pr-8 text-sm text-foreground w-24 focus:outline-none focus:ring-2 focus:ring-zinc-900/20"
+                      >
+                        <option value="">—</option>
+                        {DAY_OPTIONS.map((v) => (
+                          <option key={v} value={v}>{v}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" aria-hidden />
+                    </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

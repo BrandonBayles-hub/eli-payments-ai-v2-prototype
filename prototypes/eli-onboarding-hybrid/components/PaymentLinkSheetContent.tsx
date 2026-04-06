@@ -1,17 +1,8 @@
 import { useState, useEffect } from "react"
 import { cn } from "@sandbox-lib/utils"
 import { CheckCircle2, ExternalLink } from "lucide-react"
-
-const PROPERTIES = [
-  { id: "p1", name: "Sunset Ridge",      city: "Austin"  },
-  { id: "p2", name: "Harbor View",       city: "Denver"  },
-  { id: "p3", name: "Maple Commons",     city: "Phoenix" },
-  { id: "p4", name: "The Edison",        city: "Dallas"  },
-  { id: "p5", name: "Parkside Lofts",    city: "Houston" },
-  { id: "p6", name: "River North Plaza", city: "Austin"  },
-  { id: "p7", name: "Cedar Glen",        city: "Denver"  },
-  { id: "p8", name: "Oakwood Terrace",   city: "Phoenix" },
-]
+import { PROPERTIES } from "../data/properties"
+import { PropertyFilter, usePropertyFilter } from "./PropertyFilter"
 
 interface Props {
   onValidChange: (valid: boolean) => void
@@ -23,6 +14,7 @@ export function PaymentLinkSheetContent({ onValidChange }: Props) {
   const [links, setLinks] = useState<Record<string, string>>(
     Object.fromEntries(PROPERTIES.map((p) => [p.id, ""])),
   )
+  const { search, setSearch, group, setGroup, filtered } = usePropertyFilter()
 
   useEffect(() => {
     const anyFilled = Object.values(links).some((v) => v.trim() !== "")
@@ -73,38 +65,54 @@ export function PaymentLinkSheetContent({ onValidChange }: Props) {
       {/* Per-property links */}
       <div className="space-y-2">
         <p className="text-sm font-semibold text-foreground">Per-Property Links</p>
+
+        <PropertyFilter
+          search={search}
+          onSearchChange={setSearch}
+          group={group}
+          onGroupChange={setGroup}
+          resultCount={filtered.length}
+          totalCount={PROPERTIES.length}
+        />
+
         <div className="rounded-xl border border-border overflow-hidden">
-          {PROPERTIES.map((prop, idx) => (
-            <div
-              key={prop.id}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 border-b border-border last:border-0",
-                idx % 2 === 0 ? "bg-white" : "bg-zinc-50/50",
-              )}
-            >
-              <div className="w-36 shrink-0">
-                <p className="text-sm font-medium text-foreground truncate">{prop.name}</p>
-                <p className="text-xs text-muted-foreground">{prop.city}</p>
-              </div>
-              <div className="relative flex-1">
-                <input
-                  type="url"
-                  placeholder="https://"
-                  value={links[prop.id]}
-                  onChange={(e) =>
-                    setLinks((prev) => ({ ...prev, [prop.id]: e.target.value }))
-                  }
-                  className="w-full h-8 rounded-lg border border-border bg-white pl-3 pr-8 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-zinc-900/20"
-                />
-                {links[prop.id] && (
-                  <ExternalLink
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground"
-                    aria-hidden
-                  />
-                )}
-              </div>
+          {filtered.length === 0 ? (
+            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+              No properties match your filter.
             </div>
-          ))}
+          ) : (
+            filtered.map((prop, idx) => (
+              <div
+                key={prop.id}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 border-b border-border last:border-0",
+                  idx % 2 === 0 ? "bg-white" : "bg-zinc-50/50",
+                )}
+              >
+                <div className="w-36 shrink-0">
+                  <p className="text-sm font-medium text-foreground truncate">{prop.name}</p>
+                  <p className="text-xs text-muted-foreground">{prop.city}, {prop.state}</p>
+                </div>
+                <div className="relative flex-1">
+                  <input
+                    type="url"
+                    placeholder="https://"
+                    value={links[prop.id]}
+                    onChange={(e) =>
+                      setLinks((prev) => ({ ...prev, [prop.id]: e.target.value }))
+                    }
+                    className="w-full h-8 rounded-lg border border-border bg-white pl-3 pr-8 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-zinc-900/20"
+                  />
+                  {links[prop.id] && (
+                    <ExternalLink
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground"
+                      aria-hidden
+                    />
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

@@ -66,7 +66,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="prototypes/:name" element={<PrototypeView prototypes={prototypes} />} />
+        {/* `/*` lets prototypes (e.g. eli-onboarding-hybrid) own nested client routes without a nested HashRouter */}
+        <Route path="prototypes/:name/*" element={<PrototypeView prototypes={prototypes} />} />
         <Route element={<AppLayout name={me.name} prototypeCount={prototypes.length} branch={git.branch} dirty={git.dirty} syncStatus={syncStatus} />}>
           <Route index element={<HomePage me={me} prototypes={prototypes} git={git} syncStatus={syncStatus} />} />
           <Route path="prototypes" element={<PrototypesPage prototypes={prototypes} branch={git.branch} />} />

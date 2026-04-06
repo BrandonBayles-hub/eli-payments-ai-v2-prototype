@@ -1,17 +1,8 @@
 import { useState, useEffect } from "react"
 import { cn } from "@sandbox-lib/utils"
 import { ExternalLink, Info } from "lucide-react"
-
-const PROPERTIES = [
-  { id: "p1", name: "Sunset Ridge",      city: "Austin",  enabled: true  },
-  { id: "p2", name: "Harbor View",       city: "Denver",  enabled: false },
-  { id: "p3", name: "Maple Commons",     city: "Phoenix", enabled: true  },
-  { id: "p4", name: "The Edison",        city: "Dallas",  enabled: false },
-  { id: "p5", name: "Parkside Lofts",    city: "Houston", enabled: true  },
-  { id: "p6", name: "River North Plaza", city: "Austin",  enabled: false },
-  { id: "p7", name: "Cedar Glen",        city: "Denver",  enabled: true  },
-  { id: "p8", name: "Oakwood Terrace",   city: "Phoenix", enabled: false },
-]
+import { PROPERTIES } from "../data/properties"
+import { PropertyFilter, usePropertyFilter } from "./PropertyFilter"
 
 interface Props {
   onValidChange: (valid: boolean) => void
@@ -19,9 +10,10 @@ interface Props {
 
 export function PaymentPlansSheetContent({ onValidChange }: Props) {
   const [toggles, setToggles] = useState<Record<string, boolean>>(
-    Object.fromEntries(PROPERTIES.map((p) => [p.id, p.enabled])),
+    Object.fromEntries(PROPERTIES.map((p) => [p.id, p.id === "p1" || p.id === "p3" || p.id === "p5" || p.id === "p7"])),
   )
   const [touched, setTouched] = useState(false)
+  const { search, setSearch, group, setGroup, filtered } = usePropertyFilter()
 
   useEffect(() => {
     onValidChange(touched)
@@ -93,44 +85,60 @@ export function PaymentPlansSheetContent({ onValidChange }: Props) {
       {/* Per-community toggles */}
       <div className="space-y-2">
         <p className="text-sm font-semibold text-foreground">Per-Community Setting</p>
+
+        <PropertyFilter
+          search={search}
+          onSearchChange={setSearch}
+          group={group}
+          onGroupChange={setGroup}
+          resultCount={filtered.length}
+          totalCount={PROPERTIES.length}
+        />
+
         <div className="rounded-xl border border-border overflow-hidden">
-          {PROPERTIES.map((prop, idx) => (
-            <div
-              key={prop.id}
-              className={cn(
-                "flex items-center justify-between px-4 py-3 border-b border-border last:border-0",
-                idx % 2 === 0 ? "bg-white" : "bg-zinc-50/50",
-              )}
-            >
-              <div>
-                <p className="text-sm font-medium text-foreground">{prop.name}</p>
-                <p className="text-xs text-muted-foreground">{prop.city}</p>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs text-muted-foreground">
-                  {toggles[prop.id] ? "Allowed" : "Not Allowed"}
-                </span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={toggles[prop.id]}
-                  onClick={() => toggle(prop.id)}
-                  className={cn(
-                    "relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-zinc-900/20",
-                    toggles[prop.id] ? "bg-emerald-700" : "bg-zinc-200",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform duration-200",
-                      toggles[prop.id] ? "translate-x-4" : "translate-x-0",
-                    )}
-                  />
-                  <span className="sr-only">{toggles[prop.id] ? "Enabled" : "Disabled"}</span>
-                </button>
-              </div>
+          {filtered.length === 0 ? (
+            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+              No properties match your filter.
             </div>
-          ))}
+          ) : (
+            filtered.map((prop, idx) => (
+              <div
+                key={prop.id}
+                className={cn(
+                  "flex items-center justify-between px-4 py-3 border-b border-border last:border-0",
+                  idx % 2 === 0 ? "bg-white" : "bg-zinc-50/50",
+                )}
+              >
+                <div>
+                  <p className="text-sm font-medium text-foreground">{prop.name}</p>
+                  <p className="text-xs text-muted-foreground">{prop.city}, {prop.state}</p>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xs text-muted-foreground">
+                    {toggles[prop.id] ? "Allowed" : "Not Allowed"}
+                  </span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={toggles[prop.id]}
+                    onClick={() => toggle(prop.id)}
+                    className={cn(
+                      "relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-zinc-900/20",
+                      toggles[prop.id] ? "bg-emerald-700" : "bg-zinc-200",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform duration-200",
+                        toggles[prop.id] ? "translate-x-4" : "translate-x-0",
+                      )}
+                    />
+                    <span className="sr-only">{toggles[prop.id] ? "Enabled" : "Disabled"}</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

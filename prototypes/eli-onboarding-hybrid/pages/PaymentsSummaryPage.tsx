@@ -2,12 +2,27 @@ import { useState } from "react"
 import type { BasePageProps } from "../index"
 import { buttonVariants } from "@sandbox-components/ui/button"
 import { cn } from "@sandbox-lib/utils"
-import { ArrowLeft, CheckCircle2, AlertTriangle, ChevronRight, ChevronDown } from "lucide-react"
+import { ArrowLeft, CheckCircle2, AlertTriangle, ChevronRight, ChevronDown, Sparkles, Info } from "lucide-react"
 import { DateSettingSheetContent } from "../components/DateSettingSheetContent"
 import { PaymentPlansSheetContent } from "../components/PaymentPlansSheetContent"
 import { PaymentLinkSheetContent } from "../components/PaymentLinkSheetContent"
 import { PolicySheetContent } from "../components/PolicySheetContent"
 import { PaymentOptionsSheetContent } from "../components/PaymentOptionsSheetContent"
+import { LateFeeSheetContent, makeDefaultLateFeePolicy, type LateFeeState } from "../components/LateFeeSheetContent"
+import { PaymentPlanPolicySheetContent, makeDefaultPaymentPlanPolicy, type PaymentPlanPolicyState } from "../components/PaymentPlanPolicySheetContent"
+
+/** Settings auto-inferred from Entrata — not blockers, but should be reviewed. */
+const DEFAULT_SETTINGS: Record<string, { value: string; source: string }> = {
+  "rent-charge-date":   { value: "1st of month",                        source: "Entrata: Financial › Charges › Bill On" },
+  "rent-due-date":      { value: "1st of month",                        source: "Entrata: Communication › Rent Reminders › Display Rent Due On Day" },
+  "payment-plans":      { value: "Enabled (from repayment agreements)", source: "Entrata: Financial › Payments › Repayment Agreements" },
+  "payment-block-date": { value: "6th of month",                        source: "Entrata: Resident Portal › Payment Block Days (first gap day)" },
+  "grace-period":       { value: "4th of month",                        source: "Entrata: Financial › Delinquency › Default late fee formula (first day late − 1)" },
+  "outstanding-balance":{ value: "$0.01 minimum",                       source: "Conservative default (late fee formula uses non-fixed threshold)" },
+  "payment-options":    { value: "Online, ACH, Check, Cash from 1st",   source: "Standard defaults — Credit Card disabled" },
+  "late-fee-policy":         { value: "Per property — 4 pulled from Entrata, 8 defaults applied", source: "Financial › Delinquency › Late Fee Policy" },
+  "payment-plan-policy":     { value: "Per property — 3 pulled from Entrata, 9 defaults applied", source: "Financial › Payments › Repayment Agreements › Policy Notes" },
+}
 
 const SETTINGS = [
   {
@@ -62,18 +77,16 @@ const SETTINGS = [
   {
     id: "late-fee-policy",
     label: "Late Fee Policy",
-    description: "Policy language ELI uses in automated late fee notices sent to residents",
-    saveLabel: "Save Late Fee Policy",
-    type: "policy" as const,
-    policyType: "Late Fee",
+    description: "Per-property policy language ELI uses in automated late fee notices — 4 from Entrata, 8 defaults applied",
+    saveLabel: "Confirm & Save",
+    type: "late-fee" as const,
   },
   {
     id: "payment-plan-policy",
     label: "Payment Plan Policy",
-    description: "Policy language ELI shares when residents inquire about splitting their balance",
-    saveLabel: "Save Payment Plan Policy",
-    type: "policy" as const,
-    policyType: "Payment Plan",
+    description: "Per-property policy language ELI uses when residents ask about splitting their balance — 3 from Entrata, 9 defaults applied",
+    saveLabel: "Confirm & Save",
+    type: "payment-plan-policy" as const,
   },
   {
     id: "payment-options",
@@ -87,6 +100,8 @@ const SETTINGS = [
 export function PaymentsSummaryPage({ navigate, completedTasks, onComplete }: BasePageProps) {
   const [openSection, setOpenSection] = useState<string | null>(null)
   const [validMap, setValidMap] = useState<Record<string, boolean>>({})
+  const [lateFeePolicy, setLateFeePolicy] = useState<LateFeeState>(() => makeDefaultLateFeePolicy())
+  const [paymentPlanPolicy, setPaymentPlanPolicy] = useState<PaymentPlanPolicyState>(() => makeDefaultPaymentPlanPolicy())
 
   function setValid(id: string, v: boolean) {
     setValidMap((prev) => ({ ...prev, [id]: v }))
@@ -98,6 +113,8 @@ export function PaymentsSummaryPage({ navigate, completedTasks, onComplete }: Ba
   }
 
   const configuredCount = SETTINGS.filter((s) => completedTasks?.has(s.id)).length
+  const defaultCount = SETTINGS.filter((s) => DEFAULT_SETTINGS[s.id] && !completedTasks?.has(s.id)).length
+  const effectiveCount = SETTINGS.filter((s) => completedTasks?.has(s.id) || DEFAULT_SETTINGS[s.id]).length
 
   return (
     <div className="p-6 md:p-8 max-w-2xl space-y-6">
@@ -118,7 +135,7 @@ export function PaymentsSummaryPage({ navigate, completedTasks, onComplete }: Ba
           </p>
         </div>
         <span className="text-xs text-muted-foreground tabular-nums shrink-0 mt-1.5">
-          {configuredCount} / {SETTINGS.length} configured
+          {effectiveCount} / {SETTINGS.length} ready
         </span>
       </div>
 
@@ -126,14 +143,37 @@ export function PaymentsSummaryPage({ navigate, completedTasks, onComplete }: Ba
       <div className="h-1.5 w-full rounded-full bg-zinc-100 overflow-hidden">
         <div
           className="h-full rounded-full bg-emerald-700 transition-all duration-500"
-          style={{ width: `${(configuredCount / SETTINGS.length) * 100}%` }}
+          style={{ width: `${(effectiveCount / SETTINGS.length) * 100}%` }}
         />
       </div>
+
+      {/* Defaults banner */}
+      {defaultCount > 0 && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3.5 space-y-2">
+          <div className="flex items-start gap-2.5">
+            <Sparkles className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" aria-hidden />
+            <div>
+              <p className="text-sm font-semibold text-blue-900">
+                We applied defaults to {defaultCount} settings
+              </p>
+              <p className="text-xs text-blue-800 mt-0.5 leading-relaxed">
+                We inferred these values from your existing Entrata configuration. They won't block activation, but we recommend reviewing each one before going live to make sure they match your lease agreements and billing policies.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 pl-7">
+            <Info className="h-3 w-3 text-blue-500 shrink-0" aria-hidden />
+            <p className="text-[11px] text-blue-700">Settings marked <span className="font-semibold">Default Applied</span> were pre-filled — not entered by your team.</p>
+          </div>
+        </div>
+      )}
 
       {/* Settings accordion */}
       <div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
         {SETTINGS.map((setting) => {
-          const isConfigured = completedTasks?.has(setting.id) ?? false
+          const explicitlyConfigured = completedTasks?.has(setting.id) ?? false
+          const hasDefault = !!DEFAULT_SETTINGS[setting.id]
+          const isConfigured = explicitlyConfigured || hasDefault
           const isOpen = openSection === setting.id
           const isValid = validMap[setting.id] ?? false
 
@@ -143,17 +183,33 @@ export function PaymentsSummaryPage({ navigate, completedTasks, onComplete }: Ba
               <button
                 type="button"
                 onClick={() => setOpenSection(isOpen ? null : setting.id)}
-                className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-zinc-50 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-4 text-left bg-white hover:bg-zinc-50 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-medium text-foreground">{setting.label}</p>
-                    {isConfigured ? (
+                    {/* Default Applied + Complete shown together for auto-inferred settings */}
+                    {hasDefault && !explicitlyConfigured && (
+                      <>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                          <Sparkles className="h-3 w-3" aria-hidden />
+                          Default Applied
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                          <CheckCircle2 className="h-3 w-3" aria-hidden />
+                          Complete
+                        </span>
+                      </>
+                    )}
+                    {/* Explicitly configured by the user */}
+                    {explicitlyConfigured && (
                       <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
                         <CheckCircle2 className="h-3 w-3" aria-hidden />
-                        Configured
+                        Complete
                       </span>
-                    ) : (
+                    )}
+                    {/* Not set — needs client input */}
+                    {!isConfigured && (
                       <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
                         <AlertTriangle className="h-3 w-3" aria-hidden />
                         Not Set
@@ -170,7 +226,25 @@ export function PaymentsSummaryPage({ navigate, completedTasks, onComplete }: Ba
               {/* Expanded form */}
               {isOpen && (
                 <div className="border-t border-border bg-zinc-50/50">
-                  {isConfigured && (
+                  {/* Default applied notice — always show when a default exists and user hasn't overridden */}
+                  {hasDefault && !explicitlyConfigured && (
+                    <div className="mx-4 mt-4 rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-3 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-3.5 w-3.5 text-blue-600 shrink-0" aria-hidden />
+                        <p className="text-xs font-semibold text-blue-900">Default applied — please review</p>
+                      </div>
+                      <p className="text-xs text-blue-800 pl-5">
+                        <span className="font-medium">Applied value:</span> {DEFAULT_SETTINGS[setting.id].value}
+                      </p>
+                      <p className="text-xs text-blue-700 pl-5">
+                        <span className="font-medium">Source:</span> {DEFAULT_SETTINGS[setting.id].source}
+                      </p>
+                      <p className="text-xs text-blue-700 pl-5 pt-0.5">
+                        This setting is complete, but we recommend verifying it matches your lease agreements. Save below to confirm or override.
+                      </p>
+                    </div>
+                  )}
+                  {explicitlyConfigured && (
                     <div className="flex items-center gap-2 mx-4 mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5">
                       <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0" aria-hidden />
                       <p className="text-xs text-emerald-800">
@@ -185,6 +259,7 @@ export function PaymentsSummaryPage({ navigate, completedTasks, onComplete }: Ba
                       <DateSettingSheetContent
                         label={setting.label}
                         onValidChange={(v) => setValid(setting.id, v)}
+                        defaultDay={DEFAULT_SETTINGS[setting.id]?.value.match(/^\d+/)?.[0]}
                       />
                     )}
                     {setting.type === "plans" && (
@@ -200,6 +275,20 @@ export function PaymentsSummaryPage({ navigate, completedTasks, onComplete }: Ba
                     {setting.type === "policy" && (
                       <PolicySheetContent
                         policyType={(setting as { policyType: string }).policyType}
+                        onValidChange={(v) => setValid(setting.id, v)}
+                      />
+                    )}
+                    {setting.type === "late-fee" && (
+                      <LateFeeSheetContent
+                        policies={lateFeePolicy}
+                        onChange={(propId, val) => setLateFeePolicy(p => ({ ...p, [propId]: val }))}
+                        onValidChange={(v) => setValid(setting.id, v)}
+                      />
+                    )}
+                    {setting.type === "payment-plan-policy" && (
+                      <PaymentPlanPolicySheetContent
+                        policies={paymentPlanPolicy}
+                        onChange={(propId, val) => setPaymentPlanPolicy(p => ({ ...p, [propId]: val }))}
                         onValidChange={(v) => setValid(setting.id, v)}
                       />
                     )}
@@ -220,11 +309,11 @@ export function PaymentsSummaryPage({ navigate, completedTasks, onComplete }: Ba
                     </button>
                     <button
                       type="button"
-                      disabled={!isValid}
+                      disabled={(setting.type === "late-fee" || setting.type === "payment-plan-policy") ? false : !isValid}
                       onClick={() => handleSave(setting.id)}
                       className={cn(
                         buttonVariants({ variant: "eli", size: "sm" }),
-                        !isValid && "opacity-40 cursor-not-allowed",
+                        (setting.type !== "late-fee" && setting.type !== "payment-plan-policy" && !isValid) && "opacity-40 cursor-not-allowed",
                       )}
                     >
                       {setting.saveLabel}

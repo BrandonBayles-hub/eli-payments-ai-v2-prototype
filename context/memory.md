@@ -6,6 +6,8 @@
 
 ## Preferences
 
+- When working on the ELI guided setup comparison, **start both dev servers**: original `eli-guided-setup` on **http://localhost:3001** and `eli-guided-setup-accessible` on **http://localhost:3002** (run both with `npm run dev` from each folder). If ports are busy, free 3001/3002 first so ports stay fixed (`strictPort` is on for both).
+
 <!-- Things the AI learns about how you like to work. Examples: -->
 <!-- - I prefer bullet points over long paragraphs -->
 <!-- - Always show me the plan before building -->
@@ -26,6 +28,8 @@
 <!-- - I commit at the end of each work session, not continuously -->
 
 ## Corrections
+
+- Netlify sites with visitor password protection return HTTP 401 to unauthenticated requests (e.g. `musical-griffin-399619.netlify.app`). That is not a broken deploy—the in-IDE/automated browser cannot see the real app without the site password. For public or agent review, disable access control on that site or use an unprotected deploy preview; share `https://` links (http 301s to https).
 
 <!-- Things the AI got wrong that it should not repeat. Examples: -->
 <!-- - Don't use the old Entrata color palette (#1a73e8), use the design system tokens -->

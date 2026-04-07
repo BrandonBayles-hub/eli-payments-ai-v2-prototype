@@ -12,7 +12,7 @@ import {
   ENTRATA_AFTER_PATH,
 } from "../data/entrata-imports"
 import { formatPhone, isValidPhone } from "../components/PhoneNumberSheetContent"
-import { AgentTabBar, VoiceTab, TestAgentTab, VOICES, type AgentTopTab, type ChatScenario } from "../components/AgentTabs"
+import { AgentTabBar, VoiceTab, TestAgentTab, PromptTab, EscalationsTab, ReportingTab, VOICES, type AgentTopTab, type ChatScenario } from "../components/AgentTabs"
 
 const MAINTENANCE_SCENARIOS: ChatScenario[] = [
   {
@@ -197,8 +197,11 @@ export function MaintenancePage({ navigate, duringPhones, onDuringPhoneChange, a
 
       <AgentTabBar activeTab={topTab} onTabChange={setTopTab} />
 
-      {topTab === "voices" && <VoiceTab selectedVoice={selectedVoice} onSelect={setSelectedVoice} />}
-      {topTab === "test"   && <TestAgentTab productLabel="Maintenance AI" voiceName={voiceName} scenarios={MAINTENANCE_SCENARIOS} />}
+      {topTab === "voices"      && <VoiceTab selectedVoice={selectedVoice} onSelect={setSelectedVoice} />}
+      {topTab === "prompt"      && <PromptTab productId="maintenance" />}
+      {topTab === "test"        && <TestAgentTab productLabel="Maintenance AI" voiceName={voiceName} scenarios={MAINTENANCE_SCENARIOS} />}
+      {topTab === "escalations" && <EscalationsTab productId="maintenance" />}
+      {topTab === "reporting"   && <ReportingTab productId="maintenance" />}
 
       {topTab === "configure" && (
       <div className="max-w-3xl space-y-6">

@@ -10,7 +10,7 @@ import { PolicySheetContent } from "../components/PolicySheetContent"
 import { PaymentOptionsSheetContent } from "../components/PaymentOptionsSheetContent"
 import { LateFeeSheetContent, makeDefaultLateFeePolicy, type LateFeeState } from "../components/LateFeeSheetContent"
 import { PaymentPlanPolicySheetContent, makeDefaultPaymentPlanPolicy, type PaymentPlanPolicyState } from "../components/PaymentPlanPolicySheetContent"
-import { AgentTabBar, VoiceTab, TestAgentTab, VOICES, type AgentTopTab, type ChatScenario } from "../components/AgentTabs"
+import { AgentTabBar, VoiceTab, TestAgentTab, PromptTab, EscalationsTab, ReportingTab, VOICES, type AgentTopTab, type ChatScenario } from "../components/AgentTabs"
 
 const PAYMENTS_SCENARIOS: ChatScenario[] = [
   {
@@ -172,8 +172,11 @@ export function PaymentsSummaryPage({ navigate, completedTasks, onComplete }: Ba
 
       <AgentTabBar activeTab={topTab} onTabChange={setTopTab} />
 
-      {topTab === "voices" && <VoiceTab selectedVoice={selectedVoice} onSelect={setSelectedVoice} />}
-      {topTab === "test"   && <TestAgentTab productLabel="Payments AI" voiceName={voiceName} scenarios={PAYMENTS_SCENARIOS} />}
+      {topTab === "voices"      && <VoiceTab selectedVoice={selectedVoice} onSelect={setSelectedVoice} />}
+      {topTab === "prompt"      && <PromptTab productId="payments" />}
+      {topTab === "test"        && <TestAgentTab productLabel="Payments AI" voiceName={voiceName} scenarios={PAYMENTS_SCENARIOS} />}
+      {topTab === "escalations" && <EscalationsTab productId="payments" />}
+      {topTab === "reporting"   && <ReportingTab productId="payments" />}
 
       {topTab === "configure" && (
       <div className="max-w-2xl space-y-6">

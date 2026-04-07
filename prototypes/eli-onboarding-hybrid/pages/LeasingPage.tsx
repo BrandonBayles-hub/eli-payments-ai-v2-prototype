@@ -5,6 +5,7 @@ import { cn } from "@sandbox-lib/utils"
 import {
   ArrowLeft, Send, RefreshCw, Settings2, Mic2, MessageSquare,
   ChevronRight, Bot, User, Sparkles, Play, Check, Volume2,
+  FileCode2, GitMerge, BarChart3,
 } from "lucide-react"
 import { AgentGoalSheetContent } from "../components/AgentGoalSheetContent"
 import { ModelUnitsSheetContent } from "../components/ModelUnitsSheetContent"
@@ -12,6 +13,7 @@ import { TourTypesSheetContent } from "../components/TourTypesSheetContent"
 import type { TourPropertySettings } from "../components/TourTypesSheetContent"
 import { TourPrioritySheetContent } from "../components/TourPrioritySheetContent"
 import { LeasingPoliciesSheetContent, type LeasingPoliciesState } from "../components/LeasingPoliciesSheetContent"
+import { PromptTab, EscalationsTab, ReportingTab } from "../components/AgentTabs"
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -29,7 +31,7 @@ interface Props {
   onLeasingPolicyChange: (policyId: string, propertyId: string, val: string) => void
 }
 
-type TopTab = "configure" | "voices" | "test"
+type TopTab = "configure" | "voices" | "prompt" | "test" | "escalations" | "reporting"
 
 const CONFIGURE_TABS = [
   { id: "goals",    label: "Agent Goals"   },
@@ -340,9 +342,12 @@ export function LeasingPage({
   const selectedVoiceName = VOICES.find(v => v.id === selectedVoice)?.name ?? "Jordan"
 
   const TOP_TABS = [
-    { id: "configure" as TopTab, label: "Configure",   icon: Settings2     },
-    { id: "voices"    as TopTab, label: "Voice",       icon: Mic2          },
-    { id: "test"      as TopTab, label: "Test Agent",  icon: MessageSquare },
+    { id: "configure"   as TopTab, label: "Configure",             icon: Settings2     },
+    { id: "voices"      as TopTab, label: "Voice & Name",          icon: Mic2          },
+    { id: "prompt"      as TopTab, label: "Prompt Config",         icon: FileCode2     },
+    { id: "test"        as TopTab, label: "Agent Testing",         icon: MessageSquare },
+    { id: "escalations" as TopTab, label: "Escalations",           icon: GitMerge      },
+    { id: "reporting"   as TopTab, label: "Reporting & Evolution", icon: BarChart3     },
   ]
 
   return (
@@ -418,9 +423,15 @@ export function LeasingPage({
         <VoicesTab selectedVoice={selectedVoice} onSelect={setSelectedVoice} />
       )}
 
+      {topTab === "prompt" && <PromptTab productId="leasing" />}
+
       {topTab === "test" && (
         <TestAgentTab voiceName={selectedVoiceName} />
       )}
+
+      {topTab === "escalations" && <EscalationsTab productId="leasing" />}
+
+      {topTab === "reporting" && <ReportingTab productId="leasing" />}
     </div>
   )
 }

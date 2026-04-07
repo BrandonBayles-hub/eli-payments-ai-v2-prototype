@@ -6,7 +6,7 @@ import { ArrowLeft, CalendarDays, CheckCircle2, Sparkles } from "lucide-react"
 import { PROPERTIES } from "../data/properties"
 import { PropertyFilter, usePropertyFilter } from "../components/PropertyFilter"
 import { isValidDays, RENEWAL_DEFAULT_DAYS } from "../components/RenewalLeadTimeSheetContent"
-import { AgentTabBar, VoiceTab, TestAgentTab, VOICES, type AgentTopTab, type ChatScenario } from "../components/AgentTabs"
+import { AgentTabBar, VoiceTab, TestAgentTab, PromptTab, EscalationsTab, ReportingTab, VOICES, type AgentTopTab, type ChatScenario } from "../components/AgentTabs"
 
 const RENEWALS_SCENARIOS: ChatScenario[] = [
   {
@@ -141,8 +141,11 @@ export function RenewalsPage({ navigate, days, onChange }: Props) {
 
       <AgentTabBar activeTab={topTab} onTabChange={setTopTab} />
 
-      {topTab === "voices" && <VoiceTab selectedVoice={selectedVoice} onSelect={setSelectedVoice} />}
-      {topTab === "test"   && <TestAgentTab productLabel="Renewals AI" voiceName={voiceName} scenarios={RENEWALS_SCENARIOS} />}
+      {topTab === "voices"      && <VoiceTab selectedVoice={selectedVoice} onSelect={setSelectedVoice} />}
+      {topTab === "prompt"      && <PromptTab productId="renewals" />}
+      {topTab === "test"        && <TestAgentTab productLabel="Renewals AI" voiceName={voiceName} scenarios={RENEWALS_SCENARIOS} />}
+      {topTab === "escalations" && <EscalationsTab productId="renewals" />}
+      {topTab === "reporting"   && <ReportingTab productId="renewals" />}
 
       {topTab === "configure" && (
       <div className="max-w-3xl space-y-6">

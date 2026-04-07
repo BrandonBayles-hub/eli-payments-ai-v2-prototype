@@ -14,10 +14,12 @@ import { PropertyReadiness } from "./components/PropertyReadiness"
 import { InternalPipeline } from "./components/InternalPipeline"
 import { AgentActivation } from "./components/AgentActivation"
 import { SettingsIntelligence } from "./components/SettingsIntelligence"
+import { AgentWorkflow } from "./components/AgentWorkflow"
 import { newClientImplementation, backfillImplementation, freshStartImplementation } from "./data/sample-data"
 import type { ViewRole, ClientSegment } from "./types"
 
 type OxpSection = "command-center" | "agent-roster" | "eli-setup" | "conversations" | "escalations" | "workforce" | "trainings" | "settings"
+const AGENT_ROSTER_SECTION: OxpSection = "agent-roster"
 
 const NAV: { id: OxpSection; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "command-center", label: "Command Center", icon: LayoutDashboard },
@@ -58,6 +60,7 @@ export default function EliPlusImplementationTracker() {
   const baseData = segment === "new" ? newClientImplementation : backfillImplementation
   const data = isFirstVisit ? freshStartImplementation : baseData
 
+  const [activeSection, setActiveSection] = useState<OxpSection>("eli-setup")
   const [setupStarted, setSetupStarted] = useState(false)
 
   useEffect(() => {
@@ -129,16 +132,20 @@ export default function EliPlusImplementationTracker() {
           </div>
           <nav className="space-y-1 px-2">
             {NAV.map((item) => {
-              const isActive = item.id === "eli-setup"
+              const isActive = item.id === activeSection
               const Icon = item.icon
+              const isClickable = item.id === "eli-setup" || item.id === AGENT_ROSTER_SECTION
               return (
                 <button
                   key={item.id}
                   type="button"
+                  onClick={() => isClickable && setActiveSection(item.id)}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                     isActive
                       ? "bg-primary/10 text-primary font-medium"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      : isClickable
+                      ? "text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+                      : "text-muted-foreground opacity-50 cursor-default"
                   }`}
                   aria-current={isActive ? "page" : undefined}
                 >
@@ -159,7 +166,11 @@ export default function EliPlusImplementationTracker() {
         </aside>
 
         <main className="flex-1 p-6 overflow-y-auto">
-          {showWelcome ? (
+          {activeSection === AGENT_ROSTER_SECTION ? (
+            <div className="max-w-5xl mx-auto">
+              <AgentWorkflow />
+            </div>
+          ) : showWelcome ? (
             <div className="max-w-lg mx-auto flex flex-col items-center justify-center py-20 text-center">
               <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-purple-600 to-pink-500 flex items-center justify-center mb-6">
                 <Zap className="h-7 w-7 text-white" aria-hidden="true" />

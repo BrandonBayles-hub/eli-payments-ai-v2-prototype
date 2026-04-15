@@ -1,4 +1,26 @@
-/** Prototype-only sample data — illustrates IA, not production contracts. */
+/**
+ * Prototype-only sample data — illustrates information architecture and card ordering.
+ * Not a production contract or implementation spec.
+ *
+ * CARD ORDERING PHILOSOPHY (Overview tab):
+ * 1. Carrier compliance items (carrierCompliance: true) — surface first.
+ *    Missing carrier compliance can extend implementation from 1 day to weeks.
+ *    Privacy policy is always pinned #1 in the OverviewPage directly.
+ * 2. Critical severity — hard blockers, ELI cannot function without these.
+ * 3. Attention severity — need action but don't fully stop go-live.
+ * 4. Default severity — smart defaults applied; user reviews and confirms.
+ *
+ * PRODUCT TAGS:
+ * - "all"         → Surfaces under every product filter tab. Use for settings that
+ *                   affect all ELI agents (e.g. something that gates every product).
+ * - "leasing"     → Leasing AI–specific configuration.
+ * - "payments"    → Payments AI–specific configuration.
+ * - "maintenance" → Maintenance AI–specific configuration.
+ * - "renewals"    → Renewals AI–specific configuration.
+ *
+ * Avoid referencing specific APIs or internal system paths in card copy.
+ * Focus on what the user sees and what it means for their go-live timeline.
+ */
 
 export type BlockerSeverity = "critical" | "attention" | "waiting" | "default"
 
@@ -13,6 +35,12 @@ export interface NeedAttentionItem {
   severity: BlockerSeverity
   to: string
   product: ProductTag
+  /**
+   * True if this setting lives inside the Carrier Compliance tab.
+   * Carrier compliance items sort above all other items on the Overview.
+   * Missing carrier compliance is the single biggest implementation delay risk.
+   */
+  carrierCompliance?: boolean
   progress?: { done: number; total: number; unit: string }
   /** Values that were found in existing Entrata settings and pre-populated */
   entrataImported?: { count: number; path: string }

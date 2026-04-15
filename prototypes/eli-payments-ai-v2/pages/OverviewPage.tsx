@@ -1,8 +1,42 @@
+/**
+ * OVERVIEW TAB — DEVELOPER NOTES
+ *
+ * Purpose: The overview is the user's prioritized to-do list for the full ELI+
+ * implementation. Every required setting surfaces here as a card. Users should
+ * never have to hunt across tabs to know what's left.
+ *
+ * Card ordering (top to bottom):
+ *   1. Privacy Policy   — always pinned #1. Carrier compliance. Missing this
+ *                          can delay go-live from 1 day to several weeks.
+ *   2. Email Integration — pinned #2. Required before any AI service can send.
+ *   3. Carrier compliance items (carrierCompliance: true in mock.ts) — any
+ *                          additional settings that live in the Carrier
+ *                          Compliance tab and are not yet resolved.
+ *   4. Critical          — hard blockers. ELI cannot operate without these.
+ *   5. Attention         — important but don't fully stop go-live.
+ *   6. Default           — smart defaults were applied; user reviews and confirms.
+ *   7. IVR Setup         — unlocks after carrier compliance is complete.
+ *   Completed items sink to the bottom.
+ *
+ * Product filter tabs:
+ *   "All Agents" shows every incomplete item regardless of product.
+ *   Product-specific tabs (Leasing AI, Payments AI, etc.) show only the items
+ *   tagged for that product, plus items tagged product: "all" (cross-agent settings).
+ *
+ * What NOT to include in card copy:
+ *   - Internal API names or endpoint paths.
+ *   - Technical implementation details.
+ *   Focus on: what the setting does for the user, why it matters for go-live,
+ *   and what the consequence of skipping it is.
+ *
+ * See DEVELOPER-NOTES.md in this prototype folder for full design rationale.
+ */
+
 import { useState, useEffect, useCallback } from "react"
 import type { PageId } from "../index"
 import { buttonVariants } from "@sandbox-components/ui/button"
 import { cn } from "@sandbox-lib/utils"
-import { ArrowRight, AlertTriangle, CheckCircle2, Users, CreditCard, Wrench, RefreshCw, Sparkles, Database } from "lucide-react"
+import { ArrowRight, AlertTriangle, CheckCircle2, Users, CreditCard, Wrench, RefreshCw, Sparkles, Database, ChevronDown } from "lucide-react"
 import { NEEDS_ATTENTION } from "../data/mock"
 import type { ProductTag } from "../data/mock"
 import { TaskSheet } from "../components/TaskSheet"
@@ -32,7 +66,7 @@ import { PROPERTIES } from "../data/properties"
 type SheetId = PageId | "ten-dlc-privacy" | "email-integration" | "ivr-setup" | "rent-charge-date" | "rent-due-date" | "payment-plans" | "payment-block-date" | "payment-link" | "grace-period" | "outstanding-balance" | "late-fee-policy" | "payment-plan-policy" | "payment-options" | "maintenance-during-escalation" | "maintenance-after-escalation" | "renewal-lead-time" | "agent-goal" | "model-units" | "tour-types" | "tour-priority" | "leasing-policies"
 
 const PRODUCT_FILTERS: { tag: ProductTag | "all"; label: string }[] = [
-  { tag: "all",         label: "All" },
+  { tag: "all",         label: "All Agents" },
   { tag: "leasing",     label: "Leasing AI" },
   { tag: "payments",    label: "Payments AI" },
   { tag: "maintenance", label: "Maintenance AI" },
@@ -205,6 +239,7 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
   const [privacySheetValid, setPrivacySheetValid] = useState(false)
   const [sheetValid, setSheetValid] = useState(false)
   const [productFilter, setProductFilter] = useState<ProductTag | "all">("all")
+  const [showCompleted, setShowCompleted] = useState(false)
 
   const duringAllFilled = duringFilled === totalProps
   const afterAllFilled = afterFilled === totalProps
@@ -236,26 +271,37 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
     setToast({ message, visible: true })
   }, [])
 
-  // Progress tracks blocking items + the 10DLC privacy requirement
-  const blockingItems = NEEDS_ATTENTION.filter((i) => i.severity === "critical" || i.severity === "attention")
   const ivrUnlocked = commsComplete
-  const totalItems = blockingItems.length + 2 + (ivrUnlocked ? 1 : 0) // +1 for 10DLC, +1 for email, +1 for IVR once comms ready
-  const doneCount = blockingItems.filter((i) => completedTasks.has(i.id)).length + (privacyPublished ? 1 : 0) + (emailComplete ? 1 : 0) + (ivrComplete ? 1 : 0)
 
-  // Action Items only shows blockers — default items live in each product tab
-  // Items with product === "all" appear under every product filter tab
+  // Progress counter — 103 represents the full implementation scope across all ELI+ products
+  const TOTAL_CONFIGS = 103
+  const doneCount =
+    NEEDS_ATTENTION.filter((i) => completedTasks.has(i.id)).length +
+    (privacyPublished ? 1 : 0) +
+    (emailComplete ? 1 : 0) +
+    (ivrComplete ? 1 : 0)
+
+  // Completed pinned items (for the "Show completed" section)
+  const completedPinnedItems: Array<{ id: string; title: string }> = [
+    ...(privacyPublished ? [{ id: "ten-dlc-privacy", title: "Add a Privacy Policy for Carrier Compliance" }] : []),
+    ...(emailComplete ? [{ id: "email-integration", title: "Set Up Email Integration" }] : []),
+    ...(ivrUnlocked && ivrComplete ? [{ id: "ivr-setup", title: "Property IVR Setup" }] : []),
+  ]
+
+  // Show all items on the overview, filtered by selected product tab.
+  // product: "all" items appear under every tab (cross-agent settings).
   const filteredItems = NEEDS_ATTENTION.filter(
-    (i) =>
-      (i.severity === "critical" || i.severity === "attention") &&
-      (productFilter === "all" || i.product === productFilter || i.product === "all"),
+    (i) => productFilter === "all" || i.product === productFilter || i.product === "all",
   )
 
-  const SEV_ORDER: Record<string, number> = { critical: 0, attention: 1, default: 2, waiting: 3 }
+  // Sort order: carrier compliance → critical → attention → default → waiting → settled/complete
+  const SEV_ORDER: Record<string, number> = { critical: 1, attention: 2, default: 3, waiting: 4 }
 
-  // Sort: critical → attention → default → settled/complete
   const sortedItems = [...filteredItems].sort((a, b) => {
-    const aRank = settledIds.has(a.id) ? 99 : (SEV_ORDER[a.severity] ?? 3)
-    const bRank = settledIds.has(b.id) ? 99 : (SEV_ORDER[b.severity] ?? 3)
+    if (settledIds.has(a.id) && !settledIds.has(b.id)) return 1
+    if (!settledIds.has(a.id) && settledIds.has(b.id)) return -1
+    const aRank = a.carrierCompliance ? 0 : (SEV_ORDER[a.severity] ?? 4)
+    const bRank = b.carrierCompliance ? 0 : (SEV_ORDER[b.severity] ?? 4)
     return aRank - bRank
   })
 
@@ -309,7 +355,7 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
     const item = NEEDS_ATTENTION.find((i) => i.to === activeSheet)
     if (item) {
       onComplete(item.id)
-      showToast(`Success! Action item updated and moved to the bottom. Items refresh daily.`)
+      showToast(`Marked complete! Find it under "Show completed" below.`)
     }
     setActiveSheet(null)
     setPrivacySheetValid(false)
@@ -338,23 +384,23 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
         <div className="space-y-3 max-w-4xl">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-foreground">Action Items</h2>
-            <span className="text-xs text-muted-foreground tabular-nums">{doneCount} / {totalItems} complete</span>
+            <span className="text-xs text-muted-foreground tabular-nums">{doneCount} / {TOTAL_CONFIGS} complete</span>
           </div>
 
           <div className="h-1 w-full rounded-full bg-zinc-100 overflow-hidden">
             <div
               className="h-full rounded-full bg-emerald-700 transition-all duration-500"
-              style={{ width: totalItems > 0 ? `${(doneCount / totalItems) * 100}%` : "0%" }}
+              style={{ width: `${Math.min(100, (doneCount / TOTAL_CONFIGS) * 100)}%` }}
             />
           </div>
 
           {/* Product filter tabs — only blocking counts shown */}
           <div className="flex items-center gap-1 flex-wrap rounded-lg border border-border bg-white px-1.5 py-1.5 w-fit">
             {PRODUCT_FILTERS.map(({ tag, label }) => {
+              // Count incomplete items for this tab (all severities)
               const blockingCount = NEEDS_ATTENTION.filter((i) =>
                 (tag === "all" ? true : i.product === tag || i.product === "all") &&
-                !completedTasks.has(i.id) &&
-                (i.severity === "critical" || i.severity === "attention"),
+                !completedTasks.has(i.id),
               ).length
               const isActive = productFilter === tag
               return (
@@ -383,8 +429,8 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
             })}
           </div>
 
-          {/* ── Zone 1: Required for Go Live ─────────────────────────────── */}
-          {requiredItems.length === 0 && privacyPublished && (
+          {/* ── All complete banner ───────────────────────────────────────── */}
+          {requiredItems.length === 0 && privacyPublished && emailComplete && (
             <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" aria-hidden />
               <p className="text-sm font-medium text-emerald-800">All required items are complete — you're ready to go live.</p>
@@ -392,39 +438,27 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
           )}
 
           <ul className="space-y-3">
-            {/* ── 10DLC Privacy Policy card (pinned, required) ─────────────── */}
-            <li
-              className={cn(
-                "group rounded-xl border bg-card transition-all duration-300",
-                privacyPublished
-                  ? "border-border opacity-70"
-                  : "border-border hover:border-zinc-400 hover:shadow-md hover:-translate-y-px cursor-pointer",
-              )}
-              onClick={() => !privacyPublished && setActiveSheet("ten-dlc-privacy")}
-            >
-              <div className="p-6 flex flex-col gap-3">
-                <div className="flex items-start gap-2 flex-wrap">
-                  <p className={cn("text-sm font-semibold leading-snug", privacyPublished ? "text-muted-foreground line-through decoration-muted-foreground/40" : "text-foreground")}>
-                    Add a Privacy Policy for Carrier Compliance
-                  </p>
-                  {privacyPublished ? (
-                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 mt-0.5 border border-emerald-600/40 bg-emerald-50 text-emerald-700">
-                      <CheckCircle2 className="h-3 w-3" aria-hidden />
-                      Complete
-                    </span>
-                  ) : (
+            {/* ── 10DLC Privacy Policy card — hidden once complete ──────────── */}
+            {!privacyPublished && (
+              <li
+                className="group rounded-xl border bg-card border-border hover:border-zinc-400 hover:shadow-md hover:-translate-y-px cursor-pointer transition-all duration-300"
+                onClick={() => setActiveSheet("ten-dlc-privacy")}
+              >
+                <div className="p-6 flex flex-col gap-3">
+                  <div className="flex items-start gap-2 flex-wrap">
+                    <p className="text-sm font-semibold leading-snug text-foreground">
+                      Add a Privacy Policy for Carrier Compliance
+                    </p>
                     <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 mt-0.5 border border-red-300 bg-red-50 text-red-600">
                       <AlertTriangle className="h-3 w-3" aria-hidden />
                       Action Required
                     </span>
-                  )}
-                </div>
-                <p className={cn("text-sm leading-relaxed max-w-prose", privacyPublished ? "text-zinc-400" : "text-zinc-600")}>
-                  A publicly accessible privacy policy is required to keep your texts compliant. Without one, carriers can block your messages or your company could face fines.
-                </p>
-                <div className="flex items-center justify-between gap-4 pt-1">
-                  <p className="text-xs text-zinc-500">Required for SMS carrier registration</p>
-                  {!privacyPublished && (
+                  </div>
+                  <p className="text-sm leading-relaxed max-w-prose text-zinc-600">
+                    A publicly accessible privacy policy is required to keep your texts compliant. Without one, carriers can block your messages or your company could face fines.
+                  </p>
+                  <div className="flex items-center justify-between gap-4 pt-1">
+                    <p className="text-xs text-zinc-500">Required for SMS carrier registration</p>
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setActiveSheet("ten-dlc-privacy") }}
@@ -433,44 +467,32 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
                       Start
                       <ArrowRight className="h-3.5 w-3.5 ml-1" aria-hidden />
                     </button>
-                  )}
+                  </div>
                 </div>
-              </div>
-            </li>
+              </li>
+            )}
 
-            {/* ── Email Integration card (pinned, required) ─────────────────── */}
-            <li
-              className={cn(
-                "group rounded-xl border bg-card transition-all duration-300",
-                emailComplete
-                  ? "border-border opacity-70"
-                  : "border-border hover:border-zinc-400 hover:shadow-md hover:-translate-y-px cursor-pointer",
-              )}
-              onClick={() => !emailComplete && setActiveSheet("email-integration")}
-            >
-              <div className="p-6 flex flex-col gap-3">
-                <div className="flex items-start gap-2 flex-wrap">
-                  <p className={cn("text-sm font-semibold leading-snug", emailComplete ? "text-muted-foreground line-through decoration-muted-foreground/40" : "text-foreground")}>
-                    Set Up Email Integration
-                  </p>
-                  {emailComplete ? (
-                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 mt-0.5 border border-emerald-600/40 bg-emerald-50 text-emerald-700">
-                      <CheckCircle2 className="h-3 w-3" aria-hidden />
-                      Complete
-                    </span>
-                  ) : (
+            {/* ── Email Integration card — hidden once complete ─────────────── */}
+            {!emailComplete && (
+              <li
+                className="group rounded-xl border bg-card border-border hover:border-zinc-400 hover:shadow-md hover:-translate-y-px cursor-pointer transition-all duration-300"
+                onClick={() => setActiveSheet("email-integration")}
+              >
+                <div className="p-6 flex flex-col gap-3">
+                  <div className="flex items-start gap-2 flex-wrap">
+                    <p className="text-sm font-semibold leading-snug text-foreground">
+                      Set Up Email Integration
+                    </p>
                     <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 mt-0.5 border border-red-300 bg-red-50 text-red-600">
                       <AlertTriangle className="h-3 w-3" aria-hidden />
                       Action Required
                     </span>
-                  )}
-                </div>
-                <p className={cn("text-sm leading-relaxed max-w-prose", emailComplete ? "text-zinc-400" : "text-zinc-600")}>
-                  Connect email addresses for each property so ELI+ can send automated and staff-managed messages from your own domain. All contracted AI services must be configured before go-live.
-                </p>
-                <div className="flex items-center justify-between gap-4 pt-1">
-                  <p className="text-xs text-zinc-500">7 of 16 properties connected · 0 of 16 ELI+ complete</p>
-                  {!emailComplete && (
+                  </div>
+                  <p className="text-sm leading-relaxed max-w-prose text-zinc-600">
+                    Connect email addresses for each property so ELI+ can send automated and staff-managed messages from your own domain. All contracted AI services must be configured before go-live.
+                  </p>
+                  <div className="flex items-center justify-between gap-4 pt-1">
+                    <p className="text-xs text-zinc-500">7 of 16 properties connected · 0 of 16 ELI+ complete</p>
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setActiveSheet("email-integration") }}
@@ -479,60 +501,44 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
                       Start
                       <ArrowRight className="h-3.5 w-3.5 ml-1" aria-hidden />
                     </button>
-                  )}
+                  </div>
                 </div>
-              </div>
-            </li>
+              </li>
+            )}
 
-            {/* ── Property IVR Setup card (appears once comms is complete) ──── */}
-            {ivrUnlocked && (
+            {/* ── IVR Setup — unlocks after carrier compliance, hidden once complete ── */}
+            {ivrUnlocked && !ivrComplete && (
               <li
-                className={cn(
-                  "group rounded-xl border bg-card transition-all duration-300",
-                  ivrComplete
-                    ? "border-border opacity-70"
-                    : "border-border hover:border-zinc-400 hover:shadow-md hover:-translate-y-px cursor-pointer",
-                )}
-                onClick={() => !ivrComplete && setActiveSheet("ivr-setup")}
+                className="group rounded-xl border bg-card border-border hover:border-zinc-400 hover:shadow-md hover:-translate-y-px cursor-pointer transition-all duration-300"
+                onClick={() => setActiveSheet("ivr-setup")}
               >
                 <div className="p-6 flex flex-col gap-3">
                   <div className="flex items-start gap-2 flex-wrap">
-                    <p className={cn("text-sm font-semibold leading-snug", ivrComplete ? "text-muted-foreground line-through decoration-muted-foreground/40" : "text-foreground")}>
+                    <p className="text-sm font-semibold leading-snug text-foreground">
                       Property IVR Setup
                     </p>
-                    {ivrComplete ? (
-                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 mt-0.5 border border-emerald-600/40 bg-emerald-50 text-emerald-700">
-                        <CheckCircle2 className="h-3 w-3" aria-hidden />
-                        Complete
-                      </span>
-                    ) : (
-                      <>
-                        <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 mt-0.5 border border-blue-200 bg-blue-50 text-blue-700">
-                          <Sparkles className="h-3 w-3" aria-hidden />
-                          Default Applied
-                        </span>
-                        <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 mt-0.5 border border-emerald-200 bg-emerald-50 text-emerald-700">
-                          <CheckCircle2 className="h-3 w-3" aria-hidden />
-                          Ready to confirm
-                        </span>
-                      </>
-                    )}
+                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 mt-0.5 border border-blue-200 bg-blue-50 text-blue-700">
+                      <Sparkles className="h-3 w-3" aria-hidden />
+                      Default Applied
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 mt-0.5 border border-emerald-200 bg-emerald-50 text-emerald-700">
+                      <CheckCircle2 className="h-3 w-3" aria-hidden />
+                      Ready to confirm
+                    </span>
                   </div>
-                  <p className={cn("text-sm leading-relaxed max-w-prose", ivrComplete ? "text-zinc-400" : "text-zinc-600")}>
+                  <p className="text-sm leading-relaxed max-w-prose text-zinc-600">
                     Your compliance numbers are active. We've applied a default phone menu to all {PROPERTIES.length} properties — callers can reach leasing, maintenance, payments, or staff. Review the default and customize any property that needs a different setup.
                   </p>
                   <div className="flex items-center justify-between gap-4 pt-1">
                     <p className="text-xs text-zinc-500">Using compliance numbers from the Communications tab · {PROPERTIES.length} properties configured</p>
-                    {!ivrComplete && (
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); setActiveSheet("ivr-setup") }}
-                        className={cn(buttonVariants({ variant: "eli", size: "sm" }), "whitespace-nowrap shrink-0 shadow-sm group-hover:shadow transition-shadow")}
-                      >
-                        Review & confirm
-                        <ArrowRight className="h-3.5 w-3.5 ml-1" aria-hidden />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setActiveSheet("ivr-setup") }}
+                      className={cn(buttonVariants({ variant: "eli", size: "sm" }), "whitespace-nowrap shrink-0 shadow-sm group-hover:shadow transition-shadow")}
+                    >
+                      Review & confirm
+                      <ArrowRight className="h-3.5 w-3.5 ml-1" aria-hidden />
+                    </button>
                   </div>
                 </div>
               </li>
@@ -652,17 +658,40 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
           </ul>
 
 
-          {/* ── Completed items ───────────────────────────────────────────── */}
-          {completedItems.length > 0 && (
-            <ul className="space-y-2 opacity-60">
-              {completedItems.map((item) => (
-                <li key={item.id} className="rounded-xl border border-border bg-card px-5 py-3 flex items-center gap-3">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" aria-hidden />
-                  <p className="text-sm font-medium text-muted-foreground line-through decoration-muted-foreground/40 flex-1">{item.title}</p>
-                  <span className="text-xs text-muted-foreground">Complete</span>
-                </li>
-              ))}
-            </ul>
+          {/* ── Show completed toggle ─────────────────────────────────────── */}
+          {(completedPinnedItems.length > 0 || completedItems.length > 0) && (
+            <div className="pt-1 border-t border-border">
+              <button
+                type="button"
+                onClick={() => setShowCompleted((v) => !v)}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
+              >
+                <ChevronDown
+                  className={cn("h-4 w-4 shrink-0 transition-transform duration-200", showCompleted ? "rotate-0" : "-rotate-90")}
+                  aria-hidden
+                />
+                {showCompleted ? "Hide" : "Show"} completed ({completedPinnedItems.length + completedItems.length})
+              </button>
+
+              {showCompleted && (
+                <ul className="space-y-2 mt-2 opacity-60">
+                  {completedPinnedItems.map((item) => (
+                    <li key={item.id} className="rounded-xl border border-border bg-card px-5 py-3 flex items-center gap-3">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" aria-hidden />
+                      <p className="text-sm font-medium text-muted-foreground line-through decoration-muted-foreground/40 flex-1">{item.title}</p>
+                      <span className="text-xs text-muted-foreground">Complete</span>
+                    </li>
+                  ))}
+                  {completedItems.map((item) => (
+                    <li key={item.id} className="rounded-xl border border-border bg-card px-5 py-3 flex items-center gap-3">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" aria-hidden />
+                      <p className="text-sm font-medium text-muted-foreground line-through decoration-muted-foreground/40 flex-1">{item.title}</p>
+                      <span className="text-xs text-muted-foreground">Complete</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
 
         </div>

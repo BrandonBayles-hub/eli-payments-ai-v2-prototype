@@ -1,33 +1,61 @@
-# My Product Area
-
-> **Fill this in so the AI understands your domain.** When it writes specs, builds prototypes, or drafts handoffs, it uses this to ground everything in your actual product reality.
+# Product Area — ELI+ Implementation Setup
 
 ## Domain
 
-- **Product Area**: <!-- e.g., Homebody (Resident Experience Platform) -->
-- **Primary Users**: <!-- Who uses your area? e.g., Residents and Property Managers -->
-- **Key Engineering Repos**: <!-- Ask your engineering lead if you're not sure. e.g., capricorn, homebody-services -->
+- **Product Area**: ELI+ — AI-powered leasing, payments, maintenance, and renewals assistant
+- **Primary Users**: Property management companies setting up ELI+ across their portfolio before go-live
+- **Prototype Focus**: The implementation setup workflow — specifically the Overview tab and its card-based prioritization system
 
-> **How to find your key repos:** Ask your engineering lead: "What are the main repos for our product area?" You'll reference these when building prototypes so the AI can match the real codebase structure.
+## What ELI+ is
 
-## Key Metrics
+ELI+ is Entrata's suite of AI agents:
 
-> What numbers define success in your area? Include current state and where you're trying to get to.
+| Agent | What it does |
+|---|---|
+| Leasing AI | Guides prospects through the leasing funnel — tours, applications, availability |
+| Payments AI | Automates rent reminders, late fee notices, and payment plan conversations |
+| Maintenance AI | Routes and escalates maintenance requests |
+| Renewals AI | Initiates and manages lease renewal conversations with residents |
 
-| Metric | Current | Target | Why It Matters |
-|--------|---------|--------|----------------|
-| <!-- e.g., Renewal Rate --> | <!-- e.g., 54% --> | <!-- e.g., 60% --> | <!-- e.g., Each 1% = $X in retained revenue --> |
-| <!-- e.g., Time to Lease --> | <!-- e.g., 45 days --> | <!-- e.g., 30 days --> | <!-- e.g., Faster leasing = less vacancy loss --> |
-| <!-- e.g., Support Ticket Volume --> | <!-- e.g., 1,200/mo --> | <!-- e.g., 800/mo --> | <!-- e.g., Self-service reduces ops burden --> |
+All four agents share common infrastructure (carrier compliance, email integration) but have their own product-specific configurations.
 
-## Current State
+## The implementation problem this prototype solves
 
-> A brief paragraph on where things stand. What's working, what's not, what changed recently.
+Today, implementation teams set up each ELI product in its own tab, in any order. There's no guidance on what to do first, and carrier compliance — the single biggest delay risk — is buried. Missing carrier compliance can extend implementation from 1 day to weeks.
 
-<!-- e.g., The renewal flow works but has a 46% drop-off at the offer review step. We shipped a redesigned offer card in Q4 but haven't seen the lift we expected. Engineering is mid-migration from the legacy PHP flow to the React frontend in capricorn. -->
+This prototype introduces a prioritized Overview tab where:
+1. Carrier compliance (privacy policy) is always #1
+2. All required settings surface as cards — users never have to hunt across tabs
+3. Cards order by urgency: carrier compliance → critical → attention → defaults
 
-## Competitive Landscape
+## Key concepts
 
-> What are competitors doing in your space? This helps the AI understand the market context when writing specs.
+**Carrier compliance**: SMS carriers require a publicly accessible privacy policy + 10DLC brand registration before messages can be sent. This is the hardest blocker — missing it stops all outbound AI communication across every ELI product.
 
-<!-- e.g., Yardi RentCafe launched AI-powered renewal pricing. AppFolio has a one-click renewal flow. Our advantage is the integrated platform but we're behind on self-service UX. -->
+**Smart defaults**: Most settings (rent dates, payment options, tour types) are pre-populated from data already in Entrata or reasonable industry defaults. The user reviews and confirms, not starts from scratch.
+
+**"All Agents" settings**: Some settings gate or affect every ELI product simultaneously (privacy policy, email integration). Others are product-specific. The filter tabs on the Overview separate these.
+
+## Card ordering rules
+
+See `DEVELOPER-NOTES.md` in the prototype folder for full rules. Short version:
+1. Privacy policy — always pinned first
+2. Email integration — pinned second
+3. `carrierCompliance: true` items — next
+4. Critical blockers
+5. Attention items
+6. Default review items
+
+## Key metrics (implementation context)
+
+| Metric | Current | Target |
+|---|---|---|
+| Implementation timeline | ~4 weeks | 1–3 days |
+| Carrier compliance delay risk | Weeks if missed | 0 if surfaced first |
+| Customer effort (setup) | Many tabs, unclear order | Single prioritized list |
+
+## What this prototype is NOT
+
+- Not a full production spec — it's a proof of concept for the setup UX
+- Not the final component library — it uses sandbox components as placeholders
+- Not an engineering handoff — see `DEVELOPER-NOTES.md` for what devs need to know

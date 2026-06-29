@@ -157,7 +157,7 @@ export default function EliOnboardingHybrid() {
 
   return (
     <EntrataLayout activeTab="Dashboard" activeSubTab="ELI+ Setup" disableContentCard>
-      <HybridShell page={page} navigate={navigate} completedTasks={completedTasks} privacyPublished={privacyPublished} emailComplete={emailComplete} commsComplete={campaignStatus === "ready"}>
+      <HybridShell page={page} navigate={navigate} completedTasks={completedTasks} privacyPublished={privacyPublished} emailComplete={emailComplete} commsComplete={campaignStatus === "ready"} ivrComplete={ivrComplete}>
         {page === "overview" ? (
           <OverviewPage
             navigate={navigate}

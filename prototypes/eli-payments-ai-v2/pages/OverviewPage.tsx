@@ -36,7 +36,7 @@ import { useState, useEffect, useCallback } from "react"
 import type { PageId } from "../index"
 import { buttonVariants } from "@sandbox-components/ui/button"
 import { cn } from "@sandbox-lib/utils"
-import { ArrowRight, AlertTriangle, CheckCircle2, Users, CreditCard, Wrench, RefreshCw, Sparkles, Database, ChevronDown } from "lucide-react"
+import { ArrowRight, AlertTriangle, CheckCircle2, Users, CreditCard, Wrench, RefreshCw, Sparkles, Database, ChevronDown, Lock } from "lucide-react"
 import { NEEDS_ATTENTION } from "../data/mock"
 import type { ProductTag } from "../data/mock"
 import { TaskSheet } from "../components/TaskSheet"
@@ -285,7 +285,7 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
   const completedPinnedItems: Array<{ id: string; title: string }> = [
     ...(privacyPublished ? [{ id: "ten-dlc-privacy", title: "Add a Privacy Policy for Carrier Compliance" }] : []),
     ...(emailComplete ? [{ id: "email-integration", title: "Set Up Email Integration" }] : []),
-    ...(ivrUnlocked && ivrComplete ? [{ id: "ivr-setup", title: "Property IVR Setup" }] : []),
+    ...(ivrComplete ? [{ id: "ivr-setup", title: "Property IVR Setup" }] : []),
   ]
 
   // Show all items on the overview, filtered by selected product tab.
@@ -394,46 +394,33 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
             />
           </div>
 
-          {/* Product filter tabs — only blocking counts shown */}
-          <div className="flex items-center gap-1 flex-wrap rounded-lg border border-border bg-white px-1.5 py-1.5 w-fit">
-            {PRODUCT_FILTERS.map(({ tag, label }) => {
-              // Count incomplete items for this tab (all severities)
-              const blockingCount = NEEDS_ATTENTION.filter((i) =>
-                (tag === "all" ? true : i.product === tag || i.product === "all") &&
-                !completedTasks.has(i.id),
-              ).length
-              const isActive = productFilter === tag
-              return (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => setProductFilter(tag)}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-zinc-900 text-white shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-zinc-50",
-                  )}
-                >
-                  {label}
-                  {blockingCount > 0 && (
-                    <span className={cn(
-                      "inline-flex items-center justify-center h-4 min-w-[1rem] rounded-full text-[10px] font-bold leading-none px-0.5",
-                      isActive ? "bg-white/20 text-white" : "bg-red-500 text-white",
-                    )}>
-                      {blockingCount}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
+          {/* ── Product filter tabs ───────────────────────────────────────── */}
+          <div className="flex items-center gap-1 flex-wrap">
+            {PRODUCT_FILTERS.map(({ tag, label }) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => setProductFilter(tag)}
+                className={cn(
+                  "rounded-full px-3 py-1 text-xs font-medium transition-colors border",
+                  productFilter === tag
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-transparent text-muted-foreground border-border hover:border-foreground/40 hover:text-foreground",
+                )}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           {/* ── All complete banner ───────────────────────────────────────── */}
-          {requiredItems.length === 0 && privacyPublished && emailComplete && (
+          {requiredItems.length === 0 && privacyPublished && emailComplete && ivrComplete && (
             <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" aria-hidden />
-              <p className="text-sm font-medium text-emerald-800">All required items are complete — you're ready to go live.</p>
+              <p className="text-sm font-medium text-emerald-800">
+                All required items are complete
+                {productFilter !== "all" ? ` for ${PRODUCT_FILTERS.find(f => f.tag === productFilter)?.label}` : ""} — you're ready to go live.
+              </p>
             </div>
           )}
 
@@ -506,42 +493,69 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
               </li>
             )}
 
-            {/* ── IVR Setup — unlocks after carrier compliance, hidden once complete ── */}
-            {ivrUnlocked && !ivrComplete && (
-              <li
-                className="group rounded-xl border bg-card border-border hover:border-zinc-400 hover:shadow-md hover:-translate-y-px cursor-pointer transition-all duration-300"
-                onClick={() => setActiveSheet("ivr-setup")}
-              >
-                <div className="p-6 flex flex-col gap-3">
-                  <div className="flex items-start gap-2 flex-wrap">
-                    <p className="text-sm font-semibold leading-snug text-foreground">
-                      Property IVR Setup
+            {/* ── IVR Setup — locked until comms complete, hidden once complete ── */}
+            {!ivrComplete && (
+              commsComplete ? (
+                <li
+                  className="group rounded-xl border bg-card border-border hover:border-zinc-400 hover:shadow-md hover:-translate-y-px cursor-pointer transition-all duration-300"
+                  onClick={() => setActiveSheet("ivr-setup")}
+                >
+                  <div className="p-6 flex flex-col gap-3">
+                    <div className="flex items-start gap-2 flex-wrap">
+                      <p className="text-sm font-semibold leading-snug text-foreground">
+                        Property IVR Setup
+                      </p>
+                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 mt-0.5 border border-red-300 bg-red-50 text-red-600">
+                        <AlertTriangle className="h-3 w-3" aria-hidden />
+                        Action Required
+                      </span>
+                    </div>
+                    <p className="text-sm leading-relaxed max-w-prose text-zinc-600">
+                      We've applied a default phone menu to all {PROPERTIES.length} properties — callers can reach leasing, maintenance, payments, or staff. Review the default and customize any property that needs a different setup. Required before any AI agent can go live.
                     </p>
-                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 mt-0.5 border border-blue-200 bg-blue-50 text-blue-700">
-                      <Sparkles className="h-3 w-3" aria-hidden />
-                      Default Applied
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 mt-0.5 border border-emerald-200 bg-emerald-50 text-emerald-700">
-                      <CheckCircle2 className="h-3 w-3" aria-hidden />
-                      Ready to confirm
-                    </span>
+                    <div className="flex items-center justify-between gap-4 pt-1">
+                      <p className="text-xs text-zinc-500">Required for all agents · {PROPERTIES.length} properties configured with default</p>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setActiveSheet("ivr-setup") }}
+                        className={cn(buttonVariants({ variant: "eli", size: "sm" }), "whitespace-nowrap shrink-0 shadow-sm group-hover:shadow transition-shadow")}
+                      >
+                        Review & confirm
+                        <ArrowRight className="h-3.5 w-3.5 ml-1" aria-hidden />
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-sm leading-relaxed max-w-prose text-zinc-600">
-                    Your compliance numbers are active. We've applied a default phone menu to all {PROPERTIES.length} properties — callers can reach leasing, maintenance, payments, or staff. Review the default and customize any property that needs a different setup.
-                  </p>
-                  <div className="flex items-center justify-between gap-4 pt-1">
-                    <p className="text-xs text-zinc-500">Using compliance numbers from the Communications tab · {PROPERTIES.length} properties configured</p>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); setActiveSheet("ivr-setup") }}
-                      className={cn(buttonVariants({ variant: "eli", size: "sm" }), "whitespace-nowrap shrink-0 shadow-sm group-hover:shadow transition-shadow")}
-                    >
-                      Review & confirm
-                      <ArrowRight className="h-3.5 w-3.5 ml-1" aria-hidden />
-                    </button>
+                </li>
+              ) : (
+                <li className="rounded-xl border border-border bg-zinc-50 opacity-60 cursor-not-allowed transition-all duration-300">
+                  <div className="p-6 flex flex-col gap-3">
+                    <div className="flex items-start gap-2 flex-wrap">
+                      <p className="text-sm font-semibold leading-snug text-zinc-400">
+                        Property IVR Setup
+                      </p>
+                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 mt-0.5 border border-zinc-200 bg-white text-zinc-400">
+                        <Lock className="h-3 w-3" aria-hidden />
+                        Locked
+                      </span>
+                    </div>
+                    <p className="text-sm leading-relaxed max-w-prose text-zinc-400">
+                      Complete the Communications tab first — each property needs a phone number assigned before IVR routing can be configured.
+                    </p>
+                    <div className="flex items-center justify-between gap-4 pt-1">
+                      <p className="text-xs text-zinc-400">Unlocks after all properties have a compliance phone number</p>
+                      <button
+                        type="button"
+                        disabled
+                        onClick={(e) => { e.stopPropagation(); navigate("communications") }}
+                        className={cn(buttonVariants({ variant: "outline", size: "sm" }), "whitespace-nowrap shrink-0 opacity-50 cursor-not-allowed")}
+                      >
+                        Go to Communications
+                        <ArrowRight className="h-3.5 w-3.5 ml-1" aria-hidden />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </li>
+                </li>
+              )
             )}
 
             {requiredItems.map((item) => {
@@ -726,12 +740,12 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
       <TaskSheet
         open={activeSheet === "ivr-setup"}
         title="Property IVR Setup"
-        description="Review the default phone menu applied to all your properties. Confirm the default or customize individual properties in Entrata."
+        description="Select between the preferred Entrata IVR, an existing Entrata IVR, or a 3rd party IVR to route callers to leasing, maintenance, and other departments."
         onClose={() => setActiveSheet(null)}
         onSave={handleSave}
         saveLabel="Confirm & Complete"
       >
-        <IvrSetupSheetContent />
+        <IvrSetupSheetContent onValidChange={setSheetValid} />
       </TaskSheet>
 
       <TaskSheet
@@ -742,6 +756,7 @@ export function OverviewPage({ navigate, completedTasks, onComplete, privacyPubl
         onSave={handleSave}
         saveLabel="Publish to 8 Websites & Confirm All"
         saveDisabled={!privacySheetValid}
+        savePlacement="header"
       >
         <PrivacySheetContent onValidChange={setPrivacySheetValid} />
       </TaskSheet>

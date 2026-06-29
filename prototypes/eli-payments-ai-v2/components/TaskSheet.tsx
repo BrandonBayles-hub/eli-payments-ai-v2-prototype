@@ -11,10 +11,22 @@ interface TaskSheetProps {
   onSave: () => void
   saveLabel?: string
   saveDisabled?: boolean
+  /** When "header", primary save sits top-right next to close (footer hidden). */
+  savePlacement?: "footer" | "header"
   children: React.ReactNode
 }
 
-export function TaskSheet({ open, title, description, onClose, onSave, saveLabel = "Save & Mark Complete", saveDisabled = false, children }: TaskSheetProps) {
+export function TaskSheet({
+  open,
+  title,
+  description,
+  onClose,
+  onSave,
+  saveLabel = "Save & Mark Complete",
+  saveDisabled = false,
+  savePlacement = "footer",
+  children,
+}: TaskSheetProps) {
   // Lock body scroll while open
   useEffect(() => {
     if (open) {
@@ -32,6 +44,19 @@ export function TaskSheet({ open, title, description, onClose, onSave, saveLabel
     document.addEventListener("keydown", handler)
     return () => document.removeEventListener("keydown", handler)
   }, [open, onClose])
+
+  // Header save: ⌘/Ctrl+Enter publishes when enabled (footer sheets unchanged)
+  useEffect(() => {
+    if (!open || savePlacement !== "header") return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== "Enter" || !(e.metaKey || e.ctrlKey)) return
+      if (saveDisabled) return
+      e.preventDefault()
+      onSave()
+    }
+    document.addEventListener("keydown", handler)
+    return () => document.removeEventListener("keydown", handler)
+  }, [open, savePlacement, saveDisabled, onSave])
 
   return (
     <>
@@ -59,20 +84,39 @@ export function TaskSheet({ open, title, description, onClose, onSave, saveLabel
         {/* Header */}
         <div className="px-6 py-4 border-b border-border shrink-0">
           <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <h2 className="text-base font-semibold text-foreground">{title}</h2>
               {description && (
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{description}</p>
               )}
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close panel"
-              className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              {savePlacement === "header" && (
+                <button
+                  type="button"
+                  onClick={onSave}
+                  disabled={saveDisabled}
+                  title={saveDisabled ? undefined : "Shortcut: ⌘ Enter (Mac) or Ctrl+Enter (Windows)"}
+                  className={cn(
+                    buttonVariants({ variant: "eli" }),
+                    "text-sm h-9 px-4 transition-all",
+                    saveDisabled
+                      ? "opacity-40 cursor-not-allowed shadow-none"
+                      : "shadow-md ring-2 ring-emerald-600/25 bg-emerald-700 hover:bg-emerald-800",
+                  )}
+                >
+                  {saveLabel}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close panel"
+                className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -82,16 +126,21 @@ export function TaskSheet({ open, title, description, onClose, onSave, saveLabel
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-border px-6 py-4 flex items-center justify-end bg-background">
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={saveDisabled}
-            className={cn(buttonVariants({ variant: "eli" }), saveDisabled && "opacity-40 cursor-not-allowed")}
-          >
-            {saveLabel}
-          </button>
-        </div>
+        {savePlacement === "footer" && (
+          <div className="shrink-0 border-t border-border px-6 py-4 flex items-center justify-end bg-background">
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={saveDisabled}
+              className={cn(
+                buttonVariants({ variant: "eli" }),
+                saveDisabled ? "opacity-40 cursor-not-allowed" : "shadow-sm ring-2 ring-emerald-600/20",
+              )}
+            >
+              {saveLabel}
+            </button>
+          </div>
+        )}
       </div>
     </>
   )

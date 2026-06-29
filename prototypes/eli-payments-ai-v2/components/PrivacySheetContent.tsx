@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { cn } from "@sandbox-lib/utils"
 import {
   CheckCircle2,
@@ -436,6 +436,8 @@ function TemplateSectionHeader({
   open,
   onToggle,
   isComplete,
+  doneDisabled,
+  onDone,
 }: {
   label: string
   badge?: string
@@ -443,41 +445,66 @@ function TemplateSectionHeader({
   open: boolean
   onToggle: () => void
   isComplete: boolean
+  doneDisabled: boolean
+  onDone: () => void
 }) {
   return (
-    <button
-      type="button"
-      onClick={onToggle}
+    <div
       className={cn(
-        "w-full flex items-center gap-2 rounded-lg px-3 py-2.5 text-left transition-colors",
+        "flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors",
         open ? "bg-zinc-100" : "hover:bg-zinc-50",
       )}
     >
-      {isComplete
-        ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" aria-hidden />
-        : <div className="h-3.5 w-3.5 rounded-full border border-zinc-300 shrink-0" />}
-      <span className="flex-1 text-xs font-semibold text-foreground">{label}</span>
-      {badge && (
-        <span className="text-[10px] font-medium text-muted-foreground bg-zinc-100 border border-border rounded px-1.5 py-0.5">
-          {badge}
-        </span>
-      )}
-      {!required && (
-        <span className="text-[10px] text-muted-foreground">Optional</span>
-      )}
-      {open
-        ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-        : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
-    </button>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex flex-1 min-w-0 items-center gap-2 py-1 pl-1 pr-0 text-left rounded-md"
+      >
+        {isComplete
+          ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" aria-hidden />
+          : <div className="h-3.5 w-3.5 rounded-full border border-zinc-300 shrink-0" />}
+        <span className="flex-1 text-xs font-semibold text-foreground truncate">{label}</span>
+        {badge && (
+          <span className="text-[10px] font-medium text-muted-foreground bg-zinc-100 border border-border rounded px-1.5 py-0.5 shrink-0">
+            {badge}
+          </span>
+        )}
+        {!required && (
+          <span className="text-[10px] text-muted-foreground shrink-0">Optional</span>
+        )}
+        {open
+          ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" aria-hidden />
+          : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" aria-hidden />}
+      </button>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onDone() }}
+        disabled={doneDisabled}
+        title={doneDisabled ? "Edit fields below — Done enables when this section is complete and changed" : "Mark section done (Enter in any field below)"}
+        className={cn(
+          "shrink-0 rounded-md px-2.5 py-1.5 text-[11px] font-semibold transition-all border",
+          doneDisabled
+            ? "border-transparent bg-zinc-100 text-zinc-400 cursor-not-allowed"
+            : "border-emerald-700 bg-emerald-700 text-white shadow-md hover:bg-emerald-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-1",
+        )}
+      >
+        Done
+      </button>
+    </div>
   )
 }
 
 function TemplateForm({
   fields,
   onChange,
+  dirtyBaseline,
+  onCommitSectionBaseline,
 }: {
   fields: TemplateFields
   onChange: (key: keyof TemplateFields, value: string) => void
+  /** Snapshot when user entered template mode; per-section Done compares against this + per-section commits. */
+  dirtyBaseline: TemplateFields
+  onCommitSectionBaseline: (section: (typeof FIELD_SECTIONS)[number]) => void
 }) {
   const [openSections, setOpenSections] = useState<Set<SectionId>>(new Set(["company", "sms", "contact"]))
 
@@ -495,11 +522,31 @@ function TemplateForm({
       .every(f => fields[f.key].trim() !== "")
   }
 
+  function isSectionDirty(section: typeof FIELD_SECTIONS[number]) {
+    return section.fields.some(f => fields[f.key] !== dirtyBaseline[f.key])
+  }
+
+  function commitSection(section: typeof FIELD_SECTIONS[number]) {
+    onCommitSectionBaseline(section)
+    setOpenSections(prev => {
+      const n = new Set(prev)
+      n.delete(section.id)
+      return n
+    })
+  }
+
+  function tryDoneSection(section: typeof FIELD_SECTIONS[number]) {
+    if (!isSectionComplete(section) || !isSectionDirty(section)) return
+    commitSection(section)
+  }
+
   return (
     <div className="space-y-1">
       {FIELD_SECTIONS.map(section => {
         const isOpen = openSections.has(section.id)
         const isComplete = isSectionComplete(section)
+        const dirty = isSectionDirty(section)
+        const doneDisabled = !isComplete || !dirty
         return (
           <div key={section.id} className="rounded-lg border border-border overflow-hidden">
             <TemplateSectionHeader
@@ -509,6 +556,8 @@ function TemplateForm({
               open={isOpen}
               onToggle={() => toggleSection(section.id)}
               isComplete={isComplete}
+              doneDisabled={doneDisabled}
+              onDone={() => tryDoneSection(section)}
             />
             {isOpen && (
               <div className="px-3 pb-3 pt-2 space-y-2.5 bg-zinc-50/50">
@@ -527,6 +576,12 @@ function TemplateForm({
                       type="text"
                       value={fields[f.key]}
                       onChange={e => onChange(f.key, e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key !== "Enter") return
+                        if (doneDisabled) return
+                        e.preventDefault()
+                        tryDoneSection(section)
+                      }}
                       placeholder={f.placeholder}
                       className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-zinc-900"
                     />
@@ -574,8 +629,12 @@ export function PrivacySheetContent({ onValidChange }: { onValidChange: (valid: 
   const [mode, setMode] = useState<null | "copy" | "template">(null)
   const [selectedProperty, setSelectedProperty] = useState("")
   const [fields, setFields] = useState<TemplateFields>(DEFAULT_FIELDS)
+  /** Baseline for "has this section changed?" — set once when user chooses the template path. */
+  const [templateDirtyBaseline, setTemplateDirtyBaseline] = useState<TemplateFields | null>(null)
   const [thirdPartyConfirmed, setThirdPartyConfirmed] = useState<Record<string, boolean>>({})
   const [showPreview, setShowPreview] = useState(false)
+  const fieldsRef = useRef(fields)
+  fieldsRef.current = fields
 
   const templateFieldsValid = REQUIRED_FIELDS.every(k => fields[k].trim() !== "")
 
@@ -594,6 +653,17 @@ export function PrivacySheetContent({ onValidChange }: { onValidChange: (valid: 
 
   function handleFieldChange(key: keyof TemplateFields, value: string) {
     setFields(prev => ({ ...prev, [key]: value }))
+  }
+
+  function commitTemplateSectionBaseline(section: (typeof FIELD_SECTIONS)[number]) {
+    setTemplateDirtyBaseline(prev => {
+      if (!prev) return prev
+      const next = { ...prev }
+      section.fields.forEach(f => {
+        next[f.key] = fields[f.key]
+      })
+      return next
+    })
   }
 
   return (
@@ -629,7 +699,14 @@ export function PrivacySheetContent({ onValidChange }: { onValidChange: (valid: 
               title="Copy from a compliant property"
               description="Select one of your 40 valid properties and apply its privacy policy to all 8 non-compliant sites."
               active={mode === "copy"}
-              onSelect={() => setMode(mode === "copy" ? null : "copy")}
+              onSelect={() => {
+                if (mode === "copy") {
+                  setMode(null)
+                } else {
+                  setTemplateDirtyBaseline(null)
+                  setMode("copy")
+                }
+              }}
             >
               <p className="text-sm text-muted-foreground">Select a property with a valid, graded privacy policy.</p>
               <div className="space-y-1.5">
@@ -675,7 +752,15 @@ export function PrivacySheetContent({ onValidChange }: { onValidChange: (valid: 
               title="Fill in the Entrata template (v2)"
               description="Complete the legal privacy policy template — all required fields in one place. We'll publish it to all 8 properties."
               active={mode === "template"}
-              onSelect={() => setMode(mode === "template" ? null : "template")}
+              onSelect={() => {
+                if (mode === "template") {
+                  setMode(null)
+                  setTemplateDirtyBaseline(null)
+                } else {
+                  setTemplateDirtyBaseline({ ...fieldsRef.current })
+                  setMode("template")
+                }
+              }}
             >
               {/* Legal disclaimer */}
               <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
@@ -686,7 +771,14 @@ export function PrivacySheetContent({ onValidChange }: { onValidChange: (valid: 
               </div>
 
               {/* Accordion field form */}
-              <TemplateForm fields={fields} onChange={handleFieldChange} />
+              {mode === "template" && templateDirtyBaseline && (
+                <TemplateForm
+                  fields={fields}
+                  onChange={handleFieldChange}
+                  dirtyBaseline={templateDirtyBaseline}
+                  onCommitSectionBaseline={commitTemplateSectionBaseline}
+                />
+              )}
 
               {/* Progress indicator */}
               <div className="flex items-center justify-between pt-1">
